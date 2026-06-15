@@ -309,6 +309,271 @@ local function showConflicts(self)
     })
 end
 
+-- folderErrorExplanation — plain-language "what / why / what to do" for a
+-- folder error, keyed by the category from U.classifyFolderError.  Shown by
+-- the "Explain the error" button.  The raw Syncthing message is appended so
+-- nothing is hidden from a developer.
+local function folderErrorExplanation(category, raw_msg)
+    local body
+    if category == "ignored" then
+        body = _("What happened: A folder was deleted on another device. Syncthing tried to delete it here too, but can't.\n\n"
+              .. "Why: Inside it are files from your ignore list — for example KOReader's own working files. Because of .stignore, Syncthing won't touch them and refuses to delete the folder that contains them.\n\n"
+              .. "What to do: If you no longer need this folder, delete it manually from a file manager. That removes the ignored files and syncing continues.\n"
+              .. "\xe2\x9a\xa0 The files inside are deleted too — make sure they aren't the only copy of something important.\n\n"
+              .. "Note: \"Remove folder\" only stops Syncthing from tracking it, without deleting files — so it does not fix this error.")
+    elseif category == "nospace" then
+        body = _("What happened: There isn't enough free space on the device.\n\n"
+              .. "Why: Syncthing can't write the incoming files.\n\n"
+              .. "What to do: Free up some space, then rescan the folder.")
+    elseif category == "permission" then
+        body = _("What happened: Syncthing can't write to this folder.\n\n"
+              .. "Why: The folder is read-only, or its ownership/permissions don't allow writing.\n\n"
+              .. "What to do: Check the folder's permissions.")
+    elseif category == "missing" then
+        body = _("What happened: The folder or its marker (.stfolder) is missing.\n\n"
+              .. "Why: The path doesn't exist (an unmounted SD card?) or the marker was deleted.\n\n"
+              .. "What to do: Check that the path exists; if the SD card is unmounted, mount it.")
+    else
+        body = _("Some items couldn't be synced. Try rescanning the folder. If it keeps happening, see the original message below.")
+    end
+    if raw_msg and raw_msg ~= "" then
+        body = body .. "\n\n" .. T(_("Original message: %1"), raw_msg)
+    end
+    return body
+end
+
+-- openFolderDialog — the per-folder status/actions dialog.  Extracted from the
+-- folder list so the status-header tap can open it directly for an erroring
+-- folder (same destination idea as a conflict tap -> resolver).  Self-contained:
+-- recomputes my_id / device names / stats rather than capturing closure state.
+local function openFolderDialog(self, fid, folder_name, tmi)
+    local function refresh_menu()
+        if tmi then tmi:updateItems() end
+    end
+    local my_id = self:getDeviceId()
+    local _devs = self:getDevices() or {}
+    local device_name_map = {}
+    for _, dev in pairs(_devs) do
+        local did = dev["deviceID"]
+        if did then
+            device_name_map[did] = (dev["name"] and dev["name"] ~= "") and dev["name"] or did
+        end
+    end
+    local function getDeviceName(did) return device_name_map[did] or did end
+    local stat = (self:getFolderStats() or {})[fid] or {}
+
+    local status = self:getFolderStatus(fid) or {}
+    local has_error   = (tonumber(status["errors"]) or 0) > 0
+    local err_fixable = false
+    local first_error = nil
+    if has_error then
+        local ferr  = self:getFolderErrors(fid)
+        local elist = (ferr and ferr["errors"]) or {}
+        err_fixable = #elist > 0
+        for _, e in ipairs(elist) do
+            local emsg = e["error"] or ""
+            if not first_error and emsg ~= "" then first_error = emsg end
+            if not U.isTransientFolderError(emsg) then err_fixable = false end
+        end
+    end
+    local err_category = has_error and U.classifyFolderError(first_error or "") or nil
+    local need_items = tonumber(status["needTotalItems"]) or 0
+    local need_data  = tonumber(status["needBytes"])      or 0
+    local need_str   = need_items > 0
+        and T(N_("%1 item (%2)", "%1 items (%2)", need_items), need_items, util.getFriendlySize(need_data))
+        or  _("Nothing — fully synced")
+    local live_fh2    = self:getFolderHealth()
+    local live_fs2    = (live_fh2 and live_fh2.folder_states and live_fh2.folder_states[fid]) or {}
+    local is_paused   = live_fs2.paused or false
+    local live_folders = self:getFolders() or {}
+    local live_folder  = nil
+    for _, lf in pairs(live_folders) do
+        if lf["id"] == fid then live_folder = lf; break end
+    end
+    local folder_path    = (live_folder and live_folder["path"]) or "?"
+    local folder_devices = (live_folder and live_folder["devices"]) or {}
+
+    local detail_state = humanizeFolderState(
+        status["state"],
+        is_paused,
+        (status["errors"] or 0) > 0,
+        status["needBytes"])
+
+    local device_name_list = {}
+    for __, d in pairs(folder_devices) do
+        local did2 = d["deviceID"]
+        if did2 and did2 ~= my_id then
+            table.insert(device_name_list, "  \xe2\x80\xa2 " .. getDeviceName(did2))
+        end
+    end
+    local shared_str = #device_name_list > 0
+        and table.concat(device_name_list, "\n")
+        or  _("  (only this device)")
+
+    local summary = string.format(
+        "%s: %s\n%s: %s\n%s: %s\n%s: %s",
+        _("Path"),      folder_path,
+        _("Status"),    detail_state,
+        _("Remaining"), need_str,
+        _("Errors"),    (not has_error) and _("none") or (first_error or tostring(status["errors"] or 0)))
+
+    local other_buttons = {{
+            {
+                text     = _("Full details"),
+                callback = function()
+                    UIManager:show(TextViewer:new{
+                        title = folder_name,
+                        text  = string.format(
+                            "%s: %s\n%s: %s\n%s: %s\n%s: %s\n%s: %s\n%s: %s\n\n%s:\n%s",
+                            _("Path"),         folder_path,
+                            _("Status"),       detail_state,
+                            _("Remaining"),    need_str,
+                            _("Errors"),       tonumber(status["errors"]) == 0 and _("none") or tostring(status["errors"] or 0),
+                            _("Last scan"),    U.formatTime(stat["lastScan"]),
+                            _("Last file"),    (stat["lastFile"] and stat["lastFile"]["filename"]) or _("none yet"),
+                            _("Shared with"),  shared_str),
+                        width  = math.floor(Device.screen:getWidth()  * 0.92),
+                        height = math.floor(Device.screen:getHeight() * 0.80),
+                    })
+                end,
+            },
+            (has_error and err_category ~= "transient") and {
+                text     = _("Explain the error"),
+                callback = function()
+                    UIManager:show(TextViewer:new{
+                        title  = folder_name,
+                        text   = folderErrorExplanation(err_category, first_error),
+                        width  = math.floor(Device.screen:getWidth()  * 0.92),
+                        height = math.floor(Device.screen:getHeight() * 0.80),
+                    })
+                end,
+            } or nil,
+            (not is_paused) and {
+                text     = (has_error and err_fixable) and _("Fix error") or _("Rescan folder"),
+                callback = function()
+                    local result = self:scanFolder(fid)
+                    UIManager:show(InfoMessage:new{
+                        text    = U.isOk(result)
+                            and T(_("Rescan started on \"%1\"."), folder_name)
+                            or  T(_("Could not rescan \"%1\"."), folder_name),
+                        timeout = 2,
+                    })
+                    refresh_menu()
+                end,
+            } or nil,
+        }, {
+            {
+                text     = _("Remove folder"),
+                callback = function()
+                    UIManager:show(ConfirmBox:new{
+                        text = T(_("Remove folder \"%1\"?\n\n"
+                               .. "The files on disk are NOT deleted. "
+                               .. "Syncthing will stop tracking this folder."),
+                               folder_name),
+                        ok_text     = _("Remove"),
+                        cancel_text = _("Cancel"),
+                        ok_callback = function()
+                            local result = self:deleteFolder(fid)
+                            local ok = U.isOk(result)
+                            self:_cacheInvalidate()
+                            self:_invalidateFolders()
+                            if ok then
+                                UIManager:show(InfoMessage:new{
+                                    timeout = 3,
+                                    text = T(_("Folder \"%1\" removed."), folder_name),
+                                })
+                            else
+                                UIManager:show(InfoMessage:new{
+                                    icon = "notice-warning",
+                                    text = T(_("Could not remove folder.\n\n%1"), U.errOf(result)),
+                                })
+                            end
+                            refresh_menu()
+                        end,
+                    })
+                end,
+            },
+        }}
+        for i = #other_buttons[1], 1, -1 do
+            if not other_buttons[1][i] then
+                table.remove(other_buttons[1], i)
+            end
+        end
+    UIManager:show(ConfirmBox:new{
+        title = folder_name,
+        text  = summary,
+        ok_text = is_paused and _("Resume folder") or _("Pause folder"),
+        cancel_text = _("Close"),
+        other_buttons = other_buttons,
+        ok_callback = function()
+            local new_paused = not is_paused
+            local result = self:patchFolder(fid, { paused = new_paused })
+            local ok = U.isOk(result)
+            self:_cacheInvalidate()
+            self:_invalidateFolders()
+            if ok then
+                UIManager:show(InfoMessage:new{
+                    timeout = 2,
+                    text = new_paused
+                        and T(_("Folder \"%1\" paused."), folder_name)
+                        or  T(_("Folder \"%1\" resumed."), folder_name),
+                })
+            else
+                UIManager:show(InfoMessage:new{
+                    icon = "notice-warning",
+                    text = T(_("Could not change folder state.\n\n%1"), U.errOf(result)),
+                })
+            end
+            refresh_menu()
+        end,
+    })
+end
+
+-- openErroringFolder — for the status-header tap: jump straight to the problem,
+-- the way a conflict tap opens the resolver.  Opens the erroring folder's dialog
+-- (one folder), or a flat picker of the erroring folders (several).  Returns
+-- true if it showed something; false if no erroring folder was found, so the
+-- caller can fall back to the full status view.
+local function openErroringFolder(self, tmi)
+    local h = self:getFolderHealth()
+    local states = (h and h.folder_states) or {}
+    local cfg = self:getFolders() or {}
+    local name_of = {}
+    for _, fdef in pairs(cfg) do
+        local id = fdef["id"]
+        if id then
+            local nm = fdef["label"]
+            if not nm or nm == "" then nm = id end
+            name_of[id] = nm
+        end
+    end
+    local erroring = {}
+    for fid, fs in pairs(states) do
+        if fs.errors then
+            erroring[#erroring + 1] = { fid = fid, name = name_of[fid] or fid }
+        end
+    end
+    if #erroring == 0 then return false end
+    if #erroring == 1 then
+        openFolderDialog(self, erroring[1].fid, erroring[1].name, tmi)
+        return true
+    end
+    table.sort(erroring, function(a, b) return a.name < b.name end)
+    local items = {}
+    for _, ef in ipairs(erroring) do
+        items[#items + 1] = {
+            text     = ef.name,
+            callback = function() openFolderDialog(self, ef.fid, ef.name, tmi) end,
+        }
+    end
+    local Menu = require("ui/widget/menu")
+    UIManager:show(Menu:new{
+        title      = _("Folders with errors"),
+        item_table = items,
+    })
+    return true
+end
+
 local function getStatusMenu(self, touchmenu_instance)
     local sub = {}
 
@@ -524,173 +789,9 @@ local function getStatusMenu(self, touchmenu_instance)
             -- TouchMenu:onMenuSelect calls callback(self) where self = the TouchMenu
             -- rendering this folder list; tmi:updateItems() refreshes it in place.
             callback = function(tmi)
-                self.safe("Folder details", function(tmi)
-                    local function refresh_menu()
-                        if tmi then tmi:updateItems() end
-                    end
-                    local status = self:getFolderStatus(fid) or {}
-                    -- Read the real error text(s) so we only offer a "Fix" (rescan)
-                    -- for the transient, rescan-fixable kind; otherwise we show the
-                    -- actual error and keep the button a neutral "Rescan folder".
-                    local has_error   = (tonumber(status["errors"]) or 0) > 0
-                    local err_fixable = false
-                    local first_error = nil
-                    if has_error then
-                        local ferr  = self:getFolderErrors(fid)
-                        local elist = (ferr and ferr["errors"]) or {}
-                        err_fixable = #elist > 0
-                        for _, e in ipairs(elist) do
-                            local emsg = e["error"] or ""
-                            if not first_error and emsg ~= "" then first_error = emsg end
-                            if not U.isTransientFolderError(emsg) then err_fixable = false end
-                        end
-                    end
-                    local need_items = tonumber(status["needTotalItems"]) or 0
-                    local need_data  = tonumber(status["needBytes"])      or 0
-                    local need_str   = need_items > 0
-                        and T(N_("%1 item (%2)", "%1 items (%2)", need_items), need_items, util.getFriendlySize(need_data))
-                        or  _("Nothing — fully synced")
-                    -- Read is_paused from live folder health so the dialog
-                    -- reflects the real current state (not the stale _folder
-                    -- closure captured when the menu was built).
-                    local live_fh2    = self:getFolderHealth()
-                    local live_fs2    = (live_fh2 and live_fh2.folder_states and live_fh2.folder_states[fid]) or {}
-                    local is_paused   = live_fs2.paused or false
-                    -- Live folder config for path and device list.
-                    local live_folders = self:getFolders() or {}
-                    local live_folder  = nil
-                    for _, lf in pairs(live_folders) do
-                        if lf["id"] == fid then live_folder = lf; break end
-                    end
-                    local folder_path    = (live_folder and live_folder["path"]) or _folder["path"] or "?"
-                    local folder_devices = (live_folder and live_folder["devices"]) or _folder["devices"] or {}
-
-                    local detail_state = humanizeFolderState(
-                        status["state"],
-                        is_paused,
-                        (status["errors"] or 0) > 0,
-                        status["needBytes"])
-
-                    local device_name_list = {}
-                    for __, d in pairs(folder_devices) do
-                        local did2 = d["deviceID"]
-                        if did2 and did2 ~= my_id then
-                            table.insert(device_name_list, "  • " .. getDeviceName(did2))
-                        end
-                    end
-                    local shared_str = #device_name_list > 0
-                        and table.concat(device_name_list, "\n")
-                        or  _("  (only this device)")
-
-                    local summary = string.format(
-                        "%s: %s\n%s: %s\n%s: %s\n%s: %s",
-                        _("Path"),      folder_path,
-                        _("Status"),    detail_state,
-                        _("Remaining"), need_str,
-                        _("Errors"),    (not has_error) and _("none") or (first_error or tostring(status["errors"] or 0)))
-
-                    local other_buttons = {{
-                            {
-                                text     = _("Full details"),
-                                callback = function()
-                                    UIManager:show(TextViewer:new{
-                                        title = folder_name,
-                                        text  = string.format(
-                                            "%s: %s\n%s: %s\n%s: %s\n%s: %s\n%s: %s\n%s: %s\n\n%s:\n%s",
-                                            _("Path"),         folder_path,
-                                            _("Status"),       detail_state,
-                                            _("Remaining"),    need_str,
-                                            _("Errors"),       tonumber(status["errors"]) == 0 and _("none") or tostring(status["errors"] or 0),
-                                            _("Last scan"),    U.formatTime(stat["lastScan"]),
-                                            _("Last file"),    (stat["lastFile"] and stat["lastFile"]["filename"]) or _("none yet"),
-                                            _("Shared with"),  shared_str),
-                                        width  = math.floor(Device.screen:getWidth()  * 0.92),
-                                        height = math.floor(Device.screen:getHeight() * 0.80),
-                                    })
-                                end,
-                            },
-                            (not is_paused) and {
-                                text     = (has_error and err_fixable) and _("Fix error") or _("Rescan folder"),
-                                callback = function()
-                                    local result = self:scanFolder(fid)
-                                    UIManager:show(InfoMessage:new{
-                                        text    = U.isOk(result)
-                                            and T(_("Rescan started on \"%1\"."), folder_name)
-                                            or  T(_("Could not rescan \"%1\"."), folder_name),
-                                        timeout = 2,
-                                    })
-                                    refresh_menu()
-                                end,
-                            } or nil,
-                        }, {
-                            {
-                                text     = _("Remove folder"),
-                                callback = function()
-                                    UIManager:show(ConfirmBox:new{
-                                        text = T(_("Remove folder \"%1\"?\n\n"
-                                               .. "The files on disk are NOT deleted. "
-                                               .. "Syncthing will stop tracking this folder."),
-                                               folder_name),
-                                        ok_text     = _("Remove"),
-                                        cancel_text = _("Cancel"),
-                                        ok_callback = function()
-                                            local result = self:deleteFolder(fid)
-                                            local ok = U.isOk(result)
-                                            self:_cacheInvalidate()
-                                            self:_invalidateFolders()
-                                            if ok then
-                                                UIManager:show(InfoMessage:new{
-                                                    timeout = 3,
-                                                    text = T(_("Folder \"%1\" removed."), folder_name),
-                                                })
-                                            else
-                                                UIManager:show(InfoMessage:new{
-                                                    icon = "notice-warning",
-                                                    text = T(_("Could not remove folder.\n\n%1"), U.errOf(result)),
-                                                })
-                                            end
-                                            refresh_menu()
-                                        end,
-                                    })
-                                end,
-                            },
-                        }}
-                        -- Remove nil entries from the first button group
-                        -- (the conditional "Rescan folder" may be nil when folder is paused)
-                        for i = #other_buttons[1], 1, -1 do
-                            if not other_buttons[1][i] then
-                                table.remove(other_buttons[1], i)
-                            end
-                        end
-                    UIManager:show(ConfirmBox:new{
-                        title = folder_name,
-                        text  = summary,
-                        ok_text = is_paused and _("Resume folder") or _("Pause folder"),
-                        cancel_text = _("Close"),
-                        other_buttons = other_buttons,
-                        ok_callback = function()
-                            local new_paused = not is_paused
-                            local result = self:patchFolder(fid, { paused = new_paused })
-                            local ok = U.isOk(result)
-                            self:_cacheInvalidate()
-                            self:_invalidateFolders()
-                            if ok then
-                                UIManager:show(InfoMessage:new{
-                                    timeout = 2,
-                                    text = new_paused
-                                        and T(_("Folder \"%1\" paused."), folder_name)
-                                        or  T(_("Folder \"%1\" resumed."), folder_name),
-                                })
-                            else
-                                UIManager:show(InfoMessage:new{
-                                    icon = "notice-warning",
-                                    text = T(_("Could not change folder state.\n\n%1"), U.errOf(result)),
-                                })
-                            end
-                            refresh_menu()
-                        end,
-                    })
-                end)(tmi)
+                self.safe("Folder details", function()
+                    openFolderDialog(self, fid, folder_name, tmi)
+                end)()
             end,
         })
     end
@@ -2131,7 +2232,7 @@ local function getAndroidMenu(self)
                 })
                 if tmi and tmi.updateItems then tmi:updateItems() end
             else
-                showStatus()
+                if not openErroringFolder(self, tmi) then showStatus() end
             end
         end),
     }
@@ -2286,8 +2387,8 @@ local function getAndroidMenu(self)
         text_func = function()
             local pv = require("st_plugin_update").getInstalledPluginVersion()
             return (pv and pv ~= "unknown")
-                and T(_("Check for plugin updates  (%1 installed)"), pv)
-                or  _("Check for plugin updates")
+                and T(_("Check for updates  (%1 installed)"), pv)
+                or  _("Check for updates")
         end,
         help_text = _("Check GitHub for a newer release of the KOSyncthing+ plugin and install it in place.\n\nWi-Fi is required. Your settings and the saved connection to the Syncthing app are kept; KOReader restarts to load the new version."),
         keep_menu_open = true,
@@ -2508,7 +2609,7 @@ local function addToMainMenu(self, menu_items)
                     -- during …") errors. Same action as "Rescan all folders".
                     self:quickSync(function() if tmi then tmi:updateItems() end end)
                 else
-                    showStatus()
+                    if not openErroringFolder(self, tmi) then showStatus() end
                 end
             end),
         },

@@ -1,5 +1,43 @@
 # Changelog
 
+## [v1.1.8] — 2026-06-15
+
+### Fixed
+- **"No devices online" while devices were actually connected.** The
+  device-online count shown in the header and in *Status & conflicts* treated
+  Syncthing's `isLocal` connection flag as "this entry is the local device" and
+  excluded it. But `isLocal` actually marks a connection made over the **local
+  network (LAN)** — so every peer on the same Wi-Fi was excluded, and the count
+  read "no devices online" even though the device list showed them all
+  connected. (A peer reached over the internet/relay reports `isLocal=false`, so
+  it *was* counted — meaning the same device dropped in and out of the count as
+  it moved between a LAN and a global connection.) The local device is now
+  identified by its device ID only, so LAN and global peers are both counted.
+- **The error header now takes you straight to the problem.** Tapping the
+  "⚠ Error in N folders" header used to open *Status & conflicts* rendered as a
+  bare list without the normal nested navigation. It now opens the erroring
+  folder's dialog directly — or, when several folders have errors, a short list
+  of just those folders — mirroring how tapping a conflict opens its resolver.
+
+### Added
+- **"Explain the error" button on folder errors.** When a folder has a
+  non-transient error, its dialog now offers a plain-language explanation of
+  what happened, why, and what to do, tailored to the kind of error: a remote
+  deletion blocked by ignored files, out of disk space, no write permission, a
+  missing path or `.stfolder` marker, or a generic fallback. The original
+  Syncthing message is included. For the ignored-files case it points to
+  deleting the folder from a file manager (warning that the files inside go
+  too) and clarifies that *Remove folder* only stops tracking without deleting.
+
+### Changed
+- **Android: the plugin-update item is now labelled "Check for updates"** rather
+  than "Check for plugin updates". Remote mode has no plugin-managed Syncthing
+  binary, so there is nothing to disambiguate from. Kindle/Kobo keep "Check for
+  plugin updates" (it sits next to the binary updater).
+- **The device-connection count refreshes immediately after a sync,** so a peer
+  that connected or dropped during the sync is reflected without waiting for the
+  short connection cache to expire.
+
 ## [v1.1.7] — 2026-06-15
 
 ### Fixed

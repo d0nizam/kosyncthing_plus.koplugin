@@ -1,6 +1,6 @@
 # Test Suite
 
-505 tests across 16 spec files. No KOReader installation required — all
+506 tests across 16 spec files. No KOReader installation required — all
 platform modules are stubbed by the mock layer.
 
 ## Running
@@ -31,7 +31,7 @@ busted spec                      # all files (skips st_process_spec)
 |------|---------------|-------|
 | `st_sync_spec.lua` | Quick Sync: scan failure, disk-space abort, folder-error detection during idle wait | 3 |
 | `st_conflict_spec.lua` | Conflict auto-merge: file removal failure, path construction, `.sync-conflict` pattern matching, **`last_percent` fallback** (old KOReader format), **`has_progress` detection when only one side has a percent field**, **short device ID parsing and device-name resolution** (including daemon-down fallback and self-conflict detection); **`resolveConflict`**: unresolvable path warning, missing-original keep/discard branches, reading-progress percentage dialog (keep local / use conflict), generic file timestamp dialog, `conflict_is_mine` orientation for both the file and the reading-progress dialogs ("Keep incoming / Restore mine") | 47 |
-| `st_health_spec.lua` | `getFolderHealth`: paused/error/syncing/idle state derivation, need-bytes accounting, per-folder error aggregation, **device-online count excludes the local device** (Syncthing lists it in connections with `isLocal`/own deviceID) | 43 |
+| `st_health_spec.lua` | `getFolderHealth`: paused/error/syncing/idle state derivation, need-bytes accounting, per-folder error aggregation, **device-online count includes LAN and global peers, excluding only the local device by its own deviceID** (`isLocal` in Syncthing marks a LAN connection, not the local device) | 44 |
 | `st_orchestrator_spec.lua` | Lifecycle orchestration: autostart/stop, manual toggle, periodic sync scheduling, suspend/resume, Wi-Fi lease cleanup, reconcile, **opt-in auto-merge after sync** (`runSyncCompleted`), **a session-only pause flag gates Autostart**, **`hasNetwork()` LAN-only and full-offline paths**, **disconnect→reconnect cycle**, **three-way Autostart mode (off/wifi/always): start gating, force-Wi-Fi only on "always", mode-gated network-disconnect and charging** | 55 |
 | `st_timer_spec.lua` | Periodic timer cancellation through the public API | 1 |
 | `st_guard_spec.lua` | Named lease idempotency, standby/wakelock balance, exception-path release | 25 |
@@ -45,7 +45,7 @@ busted spec                      # all files (skips st_process_spec)
 | `st_api_public_spec.lua` | `IgnoreRegistry` companion API: `register` (single string or list, all-or-nothing validation, de-dup, **replace** semantics, idempotent generation bumps, apostrophe globs), `getAll` returns an independent copy, `unregister`/`isRegistered`, and **`matchesConflictBasename`** (de-mangles a conflict copy to its original and matches registered globs — exact names, `*` globs, both `.`/`~` separators, multi-dot originals, the conflict-copy gate, stray legacy values) | 16 |
 | `st_plugin_update_spec.lua` | Plugin self-updater pure logic: `parseVersion`/`isNewer` (numeric semver, differing component counts), `selectAsset` (release `.zip` asset vs `zipball_url` fallback and the strip-root flag), `stripMarkdown`, `getInstalledPluginVersion`, and a guard that the module hard-codes no `/tmp` path (not writable on Android) | 13 |
 | `st_update_download_spec.lua` | `downloadFile` LuaSocket transport: **no double-close** of the handle on success (`socketutil.file_sink` already closes it), partial-file removal + defensive close when `http.request` raises, non-200 returns false | 3 |
-| **Total** | | **505** |
+| **Total** | | **506** |
 
 ### Note on `st_process_spec` and Busted
 

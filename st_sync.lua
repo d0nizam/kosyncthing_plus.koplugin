@@ -222,6 +222,9 @@ local function syncNow(self, on_ui_refresh, silent)
     end
     self:_cacheInvalidate()
     self:_invalidateConflictCache()
+    -- A sync can change which peers are connected; force a fresh device-
+    -- connection read so the header refreshed below isn't stale.
+    self._connections_cache_time = 0
 	if not silent then
 		if failed > 0 then
 			self:showNotification(T(N_("Rescan: %1 folder scanned, %2 failed.", "Rescan: %1 folders scanned, %2 failed.", requested), requested, failed), 5)

@@ -199,23 +199,46 @@ describe("getStatusHeader – priority cases", function()
         assert.is_truthy(h:find("online", 1, true))
     end)
 
-    -- Syncthing's /system/connections map includes the local device itself.
-    -- It must not inflate the "X/Y devices online" count (would report a
-    -- phantom peer).  isLocal is the modern marker; even when the local entry
-    -- reports connected=true it must be excluded from BOTH numbers.
-    it("excludes the local device (isLocal) from the online/total count", function()
+    -- In Syncthing's /system/connections, `isLocal` marks a connection over the
+    -- LOCAL NETWORK (LAN) — not the local device.  Peers on the same Wi-Fi all
+    -- report isLocal=true and MUST be counted.  Regression: they were excluded
+    -- on isLocal, so a single-network setup showed "no devices online" while the
+    -- device list showed every peer connected.
+    it("counts LAN-connected peers (isLocal=true is a LAN connection, not the local device)", function()
         local H = freshHealth()
         local p = makePlugin({
+            getDeviceId    = function() return "SELF-XXXX" end,
             getConnections = function()
                 return { connections = {
-                    ["REMOTE-1"] = { connected = true },
-                    ["SELF-XXXX"] = { connected = true, isLocal = true },
+                    ["REMOTE-1"] = { connected = true, isLocal = true },
+                    ["REMOTE-2"] = { connected = true, isLocal = true },
                 }}
             end,
         })
         local h = H.getStatusHeader(p)
-        assert.is_truthy(h:find("1/1", 1, true))      -- one peer, one online
-        assert.is_nil(h:find("2/2", 1, true))         -- self would make it 2/2
+        assert.is_truthy(h:find("2/2", 1, true))      -- both LAN peers online
+    end)
+
+    -- A peer reached over the internet/relay (not LAN) reports isLocal=false (or
+    -- omits it).  The count must depend on connected + device ID, never on
+    -- isLocal, so a LAN peer that switches to a global connection (and vice
+    -- versa) keeps being counted, and a mix of both is summed correctly.  The
+    -- local device's own entry (here keyed by self_id, not connected) is the
+    -- only thing excluded.
+    it("counts a global (non-LAN) peer and mixes LAN + global correctly", function()
+        local H = freshHealth()
+        local p = makePlugin({
+            getDeviceId    = function() return "SELF-XXXX" end,
+            getConnections = function()
+                return { connections = {
+                    ["LAN-PEER"]    = { connected = true,  isLocal = true  },
+                    ["GLOBAL-PEER"] = { connected = true,  isLocal = false },
+                    ["SELF-XXXX"]   = { connected = false, isLocal = false }, -- local, excluded by ID
+                }}
+            end,
+        })
+        local h = H.getStatusHeader(p)
+        assert.is_truthy(h:find("2/2", 1, true))   -- LAN + global counted, local excluded
     end)
 
     -- Older daemons (e.g. the legacy v1.2.2 binary) may not send isLocal, so the

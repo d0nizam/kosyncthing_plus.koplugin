@@ -739,8 +739,42 @@ local function isTransientFolderError(msg)
     return tostring(msg):lower():find("changed during", 1, true) ~= nil
 end
 
+-- classifyFolderError — map a Syncthing folder/pull error string to a coarse
+-- category so the UI can show a plain-language explanation tailored to the kind
+-- of problem.  Substring match on the lowercased message (Syncthing's wording
+-- is stable English).  Categories:
+--   "ignored"    — a remote deletion is blocked by ignored files in the dir
+--                  (".. contains ignored files (?d) ..", or "directory not empty")
+--   "transient"  — "changed during ..." — a rescan clears it (no Explain button)
+--   "nospace"    — out of disk space
+--   "permission" — cannot write (read-only / permission denied)
+--   "missing"    — folder path or .stfolder marker is gone
+--   "other"      — anything else; the Explain text shows the raw message
+local function classifyFolderError(msg)
+    local m = tostring(msg):lower()
+    if m:find("ignored files", 1, true) or m:find("(?d)", 1, true)
+       or m:find("not empty", 1, true) then
+        return "ignored"
+    end
+    if m:find("changed during", 1, true) then return "transient" end
+    if m:find("no space", 1, true) or m:find("space left", 1, true) then
+        return "nospace"
+    end
+    if m:find("permission denied", 1, true) or m:find("read-only", 1, true)
+       or m:find("read only", 1, true) or m:find("access is denied", 1, true) then
+        return "permission"
+    end
+    if m:find("no such file", 1, true) or m:find("folder marker", 1, true)
+       or m:find(".stfolder", 1, true) or m:find("cannot find", 1, true)
+       or m:find("does not exist", 1, true) then
+        return "missing"
+    end
+    return "other"
+end
+
 return {
     isTransientFolderError    = isTransientFolderError,
+    classifyFolderError       = classifyFolderError,
     formatBytes               = formatBytes,
     formatTime                = formatTime,
     getDeviceIP               = getDeviceIP,

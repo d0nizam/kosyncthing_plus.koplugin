@@ -4,10 +4,10 @@
   <img src="assets/kosyncthing-plus-logo.svg" alt="KOSyncthing+" width="440">
 </p>
 
-[![Release](https://img.shields.io/badge/release-v1.1.7-blue)](https://github.com/d0nizam/kosyncthing_plus.koplugin/releases)
+[![Release](https://img.shields.io/badge/release-v1.1.8-blue)](https://github.com/d0nizam/kosyncthing_plus.koplugin/releases)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-blue)](LICENSE)
 ![Platform](https://img.shields.io/badge/platform-Kindle%20%7C%20Kobo%20%7C%20Android-lightgrey)
-![Tests](https://img.shields.io/badge/tests-505%20passing-brightgreen)
+![Tests](https://img.shields.io/badge/tests-506%20passing-brightgreen)
 [![Stars on GitHub](https://img.shields.io/badge/Stars_on_GitHub-181717?logo=github&logoColor=white)](https://github.com/d0nizam/kosyncthing_plus.koplugin/stargazers)
 
 **Peer-to-peer file synchronisation integrated into KOReader.**
@@ -101,6 +101,7 @@ A **wakelock** (`preventSuspend` / `allowSuspend`) is held for the entire Quick 
 
 - **Per-folder status** — shows each folder's live state (Up to date, Syncing… N MB remaining, Scanning, Error, Paused) inside the Status menu.
 - **Honest "Fix error"** — when a folder reports an error, the Status menu shows the real Syncthing message (not just a count). The folder's action button reads **"Fix error"** only when a rescan would actually clear it (a transient *„… changed during …"* error); for errors a rescan cannot fix (permission denied, no space, folder marker missing, I/O) it stays a neutral **"Rescan folder"**, so the UI never promises a fix it cannot deliver. The full error text is also included in **Copy diagnostic info**, tagged *rescan-fixable* or *needs attention*.
+- **"Explain the error"** — for an error a rescan will not fix, the folder dialog adds an **Explain the error** button: a plain-language account of what happened, why, and what to do, matched to the kind of error — a remote deletion blocked by ignored files, out of disk space, no write permission, a missing path or `.stfolder` marker, or a generic fallback — followed by the original Syncthing message. For the ignored-files case it points to deleting the folder from a file manager (warning that the files inside go with it) and notes that **Remove folder** only stops tracking without deleting.
 - **Pause / resume all folders** — the button label reflects the live paused count. When some folders are paused it reads "Resume %1 paused folder" (plural "…folders"); when all are active, "Pause all %1 folders".
 - **Accept pending devices** — view and accept incoming pairing requests from the KOReader menu. After accepting, offers to share all existing configured folders with the new device in one tap.
 - **Accept pending folders** — accept a folder shared by another device.
@@ -139,9 +140,12 @@ All possible states, in priority order:
 | 9 | `Up to date · no devices online` | no |
 
 - In row 8, `%1` is how many paired remote devices are currently online and
-  `%2` how many are paired in total; this device itself is never counted
-  (Syncthing lists the local device in its connections, but it is excluded
-  here so the figure reflects peers only).
+  `%2` how many are paired in total. Peers are counted whether they are
+  connected over the local network or the internet; this device itself is
+  excluded by matching its own device ID — **not** by Syncthing's `isLocal`
+  connection flag, which marks a *LAN connection* rather than the local device
+  (treating it as the latter previously excluded every peer on the same Wi‑Fi
+  and showed "no devices online").
 
 - When Quick Sync or background sync is actively transferring files, the
   header shows the percentage complete (e.g. "Syncing… 45% (12 MB remaining)").
@@ -155,9 +159,11 @@ All possible states, in priority order:
     folders*. The *Rescan all folders* / *Quick Sync* button is also relabelled
     **Fix errors** in this state.
   - **Errors a rescan will not fix** (permission denied, no space, folder marker
-    missing, I/O) → *" — tap to view"*; tap opens *Status & conflicts*, where the
-    real error text is shown. *Status & conflicts* is also always reachable from
-    its own row, independent of the header.
+    missing, I/O) → *" — tap to view"*; tap opens the **erroring folder's dialog
+    directly** — or, when several folders have errors, a short list of just those
+    folders — where the real error text and an **Explain the error** button are
+    shown. *Status & conflicts* remains reachable from its own row, independent
+    of the header.
 - When everything is fine, the header is greyed out and read‑only.
 - On **Android (remote mode)** there is no local daemon to start, so the
   `Stopped — tap to start` state instead reads
@@ -420,7 +426,7 @@ including BasicSync — work without extra configuration.
 - **Rescan all folders**, **Pause / resume all folders**
 - **Pair with another device**, **Web GUI access** (address + QR)
 - **Copy diagnostic info**
-- **Check for plugin updates** — update the KOSyncthing+ plugin itself from GitHub, exactly as on Kindle/Kobo. The plugin code is platform-independent; only Syncthing *binary* management is delegated to the app, so there is no "Update Syncthing binary" item here — just the plugin updater.
+- **Check for updates** — update the KOSyncthing+ plugin itself from GitHub, exactly as on Kindle/Kobo. The plugin code is platform-independent; only Syncthing *binary* management is delegated to the app, so there is no "Update Syncthing binary" item here — just the plugin updater. (The item is labelled simply **Check for updates** here, rather than "Check for plugin updates" as on Kindle/Kobo, because in remote mode there is no Syncthing binary to disambiguate from.)
 - Gestures: **Quick Sync** (rescan) and **Pause / resume all**
 
 **What is not shown (handled by the Syncthing app instead)**
@@ -534,8 +540,9 @@ KOSyncthing+                                   ← top‑level entry
 │   • Normally read‑only and greyed out.
 │   • When conflicts or folder errors exist,
 │     the line starts with ⚠ and becomes
-│     tappable — tapping opens Status &
-│     conflicts right away.
+│     tappable — conflicts open the resolver;
+│     a folder error opens that folder's dialog
+│     directly (or a short picker if several).
 │   • The appended hint (" — tap to resolve"
 │     or " — tap to view") tells you exactly
 │     what to do.
@@ -586,8 +593,9 @@ KOSyncthing+                                   ← top‑level entry
 │   │   └── <folder>: Up to date / Syncing… / Paused / Error
 │   │       └── tap → dialog:
 │   │           [Pause / Resume folder]
-│   │           [Rescan folder / Fix error]  ← "Fix error" only when a rescan helps
 │   │           [Full details]
+│   │           [Explain the error]          ← only for an error a rescan won't fix
+│   │           [Rescan folder / Fix error]  ← "Fix error" only when a rescan helps
 │   │           [Remove folder]              ← files on disk are kept
 │   │
 │   ├── Devices  ▸                           ← door; hidden when there are none
