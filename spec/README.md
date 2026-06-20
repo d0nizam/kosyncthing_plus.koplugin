@@ -3,17 +3,73 @@
 506 tests across 16 spec files. No KOReader installation required — all
 platform modules are stubbed by the mock layer.
 
+## Setup
+
+### Windows (one-command)
+
+```powershell
+.\spec\setup_windows.ps1
+```
+
+This does everything automatically: installs MinGW-w64 (C compiler) via
+winget, installs LuaRocks standalone (bundles LuaJIT), installs the
+`luafilesystem` rock, then runs all 16 spec files.
+
+The script is idempotent — subsequent runs are much faster because
+already-installed components are skipped.
+
+### Windows (manual)
+
+```powershell
+# 1. MinGW-w64 (UCRT) — C compiler for Lua rocks
+winget install -e --id BrechtSanders.WinLibs.POSIX.UCRT --accept-package-agreements
+
+# 2. LuaRocks — download luarocks-3.12.2-windows-64.zip from
+#    https://luarocks.github.io/luarocks/releases/
+#    Extract and add to PATH.
+
+# 3. Dependencies (only luafilesystem is needed)
+luarocks install luafilesystem
+
+# 4. Run all tests
+foreach ($spec in Get-ChildItem spec\*_spec.lua) {
+  luajit spec/run_tests.lua $spec.FullName
+}
+```
+
+Notes:
+- `luasocket`, `lua-cjson`, and `luajson` are **not** needed — HTTP tests use
+  injectable `request_fn` fakes, and no JSON C extension is required.
+- `lpeg` is **not** needed (no LuaRocks with C dependencies beyond lfs).
+
+Without `winget`:
+- Install MinGW-w64 manually from [winlibs.com](https://winlibs.com/)
+  (UCRT variant, extract, add `mingw64\bin` to PATH), then follow steps 2-4.
+
+### Linux (WSL / native)
+
+```sh
+sudo apt update
+sudo apt install luajit luarocks
+sudo luarocks install luafilesystem
+for f in spec/*_spec.lua; do luajit spec/run_tests.lua "$f"; done
+```
+
 ## Running
 
-The suite ships a self-contained runner (`run_tests.lua`) that works under
-plain Lua 5.1, Lua 5.3, or LuaJIT without any extra dependencies:
+Once the dependencies are installed, run tests from the plugin root:
 
 ```sh
 # Run one file
-lua5.1 spec/run_tests.lua spec/st_health_spec.lua
+luajit spec/run_tests.lua spec/st_health_spec.lua
 
-# Run everything from the plugin root
-for f in spec/*_spec.lua; do lua5.1 spec/run_tests.lua "$f"; done
+# Run everything (POSIX)
+for f in spec/*_spec.lua; do luajit spec/run_tests.lua "$f"; done
+
+# Run everything (Windows PowerShell)
+foreach ($spec in Get-ChildItem spec\*_spec.lua) {
+  luajit spec/run_tests.lua $spec.FullName
+}
 ```
 
 [Busted](https://lunarmodules.github.io/busted/) also works for all files
@@ -23,6 +79,16 @@ except `st_process_spec` (see below):
 luarocks install busted
 busted spec/st_health_spec.lua   # single file
 busted spec                      # all files (skips st_process_spec)
+```
+
+### Expected output
+
+```
+st_android_spec.lua ... OK
+st_api_public_spec.lua ... OK
+...
+Total time: 4.8s
+Specs: 16, Passed: 16, Failed: 0
 ```
 
 ## Spec files
@@ -63,7 +129,8 @@ first `before_each` fires. The plain runner in `run_tests.lua` does not use
 | `spec_helper.lua` | Sets `package.path` and calls `Mock.install()` |
 | `mock_koreader.lua` | Stubs `UIManager`, `NetworkMgr` (including `isConnected` and `isOnline`), `Device`, `G_reader_settings`, all widgets, `util`, `ffi/util`, timer scheduling, and `dkjson`/`json` |
 | `dkjson.lua` | Bundled pure-Lua JSON library used by specs that need real JSON decoding |
-| `run_tests.lua` | Minimal Busted-compatible runner; works under plain Lua 5.1/5.3/LuaJIT without luarocks |
+| `run_tests.lua` | Minimal Busted-compatible runner; works under plain Lua 5.1/5.3/5.4/LuaJIT without luarocks. Patches `os.execute`/`io.open`/`io.popen` on Windows for cross-platform `mkdir -p`/`rm -rf`/`find` compatibility |
+| `setup_windows.ps1` | One-command Windows setup script: installs MinGW-w64, LuaRocks, and `luafilesystem` |
 
 ### Design rules
 

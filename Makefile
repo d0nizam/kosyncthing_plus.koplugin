@@ -1,9 +1,9 @@
 # Makefile — KOSyncthing+
 #
 # Builds the clean install zip (runtime files only): exactly the asset that is
-# attached to each GitHub Release. Everything a user does not need at runtime —
-# docs, licence, dev tooling, tests, VCS metadata, build artifacts and the
-# runtime-downloaded Syncthing binary — is excluded.
+# attached to each GitHub Release. The LICENSE is bundled; everything else a user
+# does not need at runtime — docs, dev tooling, tests, VCS metadata, build
+# artifacts and the runtime-downloaded Syncthing binary — is excluded.
 #
 #   make build   -> produce kosyncthing_plus_koplugin.zip in the repo root
 #   make clean   -> remove it
@@ -25,7 +25,6 @@ build:
 		-x "README.md" \
 		-x "CHANGELOG.md" \
 		-x "API.md" \
-		-x "LICENSE" \
 		-x "spec/*" \
 		-x "assets/*" \
 		-x "tools/*" \

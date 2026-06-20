@@ -1,5 +1,29 @@
 # Changelog
 
+## [v1.1.9] — 2026-06-21
+
+### Fixed
+- **A successful pairing no longer shows a warning icon.** After accepting a
+  pairing request in the wizard, the "Paired with … successfully" message was
+  displayed with a ⚠ warning icon instead of the neutral info icon, making a
+  success look like something had gone wrong. The icon now matches the outcome.
+  (The failure message is unchanged — it still shows the warning icon.)
+
+### Added
+- **Windows test setup.** A one-command `spec/setup_windows.ps1` (installs
+  MinGW-w64, LuaRocks and `luafilesystem`, then runs the suite) plus Windows
+  path/command shims in `spec/run_tests.lua`, so the full 506-test suite runs
+  on Windows as well as Linux/WSL. Dev tooling only — not part of the shipped
+  plugin.
+
+### Changed
+- **The LICENSE is now bundled with the installed plugin.** It was previously
+  excluded from the install package; it now ships alongside the runtime files.
+- **Dropped the deprecated `name` field from `_meta.lua`.** KOReader derives the
+  plugin name from its directory and logs a deprecation warning for a `name`
+  key in `_meta.lua`; removing it silences that warning with no change to the
+  plugin's identity.
+
 ## [v1.1.8] — 2026-06-15
 
 ### Fixed

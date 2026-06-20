@@ -85,7 +85,7 @@ local function _confirmPendingDevice(self, device_id, device_info, qr_widget, on
             end
 
             UIManager:show(InfoMessage:new{
-                icon    = ok and nil or "notice-warning",
+                icon    = (not ok) and "notice-warning" or nil,
                 timeout = 3,
                 text    = ok
                     and T(_("Paired with \"%1\" successfully.\n\nUse the Web GUI on either device to share folders."), name)
