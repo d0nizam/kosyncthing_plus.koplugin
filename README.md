@@ -36,6 +36,7 @@ KOSyncthing+ is a KOReader plugin that embeds a fully managed [Syncthing](https:
 - [Architecture overview](#architecture-overview)
 - [Troubleshooting](#troubleshooting)
 - [Acknowledgements](#acknowledgements)
+- [See also](#see-also)
 - [License](#license)
 
 ---
@@ -1303,6 +1304,10 @@ This plugin would not exist without the work of those who came before:
 **The [Syncthing](https://syncthing.net/) project** — for building a private, encrypted, serverless sync engine that runs happily on 32-bit ARM hardware with 64 MB of RAM.
 
 **The [KOReader](https://koreader.rocks/) project** — for an open, extensible e-reader platform that makes plugins like this possible.
+
+## See also
+
+[**d0nizam/syncery.koplugin**](https://github.com/d0nizam/syncery.koplugin) - Cross-device reading progress, annotations, metadata, and render-settings sync for KOReader.
 
 ---
 
