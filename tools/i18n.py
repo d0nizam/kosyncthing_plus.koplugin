@@ -316,7 +316,7 @@ def collect_from_sources(root):
             if not fn.endswith(".lua"):
                 continue
             path = os.path.join(dirpath, fn)
-            rel = os.path.relpath(path, root)
+            rel = os.path.relpath(path, root).replace("\\", "/")
             with open(path, encoding="utf-8") as fh:
                 src = strip_lua_comments(fh.read())
             for msgid, line in extract_calls(src):
@@ -389,7 +389,7 @@ def collect_plurals(root):
             if not fn.endswith(".lua"):
                 continue
             path = os.path.join(dirpath, fn)
-            rel = os.path.relpath(path, root)
+            rel = os.path.relpath(path, root).replace("\\", "/")
             with open(path, encoding="utf-8") as fh:
                 src = strip_lua_comments(fh.read())
             for sing, plur, line in extract_plural_calls(src):
