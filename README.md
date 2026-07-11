@@ -364,7 +364,7 @@ This plugin is tested and confirmed working on:
 | Kindle | **Paperwhite 12th Generation (2024)** | Standard mode |
 | Kindle | **Basic 10th Generation (2019)** | Standard mode |
 | Kobo | **Libra Colour (2024)** | Standard mode |
-| Linux (WSL) | Acer Aspire 7 A715 | Windows 11 + WSL2, x86_64 |
+| Linux (WSL) | Acer Aspire 7 A715 | Standard mode (Windows 11 + WSL2, x86_64) |
 
 (Please send pull requests to add your tested device here!)
 
