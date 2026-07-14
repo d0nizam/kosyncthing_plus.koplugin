@@ -369,9 +369,6 @@ This plugin is tested and confirmed working on:
 
 (Please send pull requests to add your tested device here!)
 
-Because Syncthing itself is cross‑platform, the plugin should work on any
-Linux‑based e‑reader that runs KOReader (Kobo, other Kindle models, etc.),
-but these have **not been explicitly verified**.
 
 ### Older devices (kernel < 3.2)
 
