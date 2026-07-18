@@ -24,6 +24,7 @@ package.loaded["st_utils"] = {
     plugin_path = "/tmp/",
     fileSize    = function() return 0 end,
     isZip       = function() return true end,
+    unpackArchive = function() return true end,
 }
 package.loaded["st_update"] = { downloadFile = function() return true end }
 
