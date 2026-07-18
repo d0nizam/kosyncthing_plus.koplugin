@@ -145,7 +145,7 @@ function M.install(zip_url, strip_root, new_version)
 
         -- Device:unpackArchive removes the archive on success; remove it
         -- ourselves on the failure path too.
-        local ok, err = Device:unpackArchive(TMP_ZIP, U.plugin_path, strip_root)
+        local ok, err = U.unpackArchive(TMP_ZIP, U.plugin_path, strip_root)
         pcall(os.remove, TMP_ZIP)
         if not ok then
             UIManager:show(InfoMessage:new{
