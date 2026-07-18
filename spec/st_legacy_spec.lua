@@ -135,6 +135,7 @@ local U = {
     fileSize = function(_path) return FAKE.file_size or (2 * 1024 * 1024) end,
     isGzip   = function(_path) return FAKE.is_gzip ~= false end,
     isELF    = function(_path) return FAKE.is_elf  ~= false end,
+    unpackArchive = function(_, _, _, _) return FAKE.unpack ~= false end,
 }
 package.loaded["st_utils"] = U
 
