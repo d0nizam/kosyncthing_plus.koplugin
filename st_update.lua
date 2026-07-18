@@ -147,7 +147,7 @@ local function _finishInstallation(self, version, post_install_callback, lease)
     if not extract_ok then
         -- Fall back to KOReader's built-in libarchive wrapper
         os.execute("rm -rf '" .. U.shellEscape(tmp_extract_path) .. "'")
-        local libarchive_ok, libarchive_err = Device:unpackArchive(tmp_tar_path, tmp_extract_path, true)
+        local libarchive_ok, libarchive_err = U.unpackArchive(tmp_tar_path, tmp_extract_path, true)
         if not libarchive_ok then
             fail_install(_("The downloaded archive is corrupt or extraction failed.\n\nPlease try again.") ..
                          (libarchive_err and "\n\nDetails: " .. tostring(libarchive_err) or ""))
