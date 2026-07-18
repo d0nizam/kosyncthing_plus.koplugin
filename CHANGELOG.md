@@ -1,5 +1,10 @@
 # Changelog
 
+## [v1.2.0] — 2026-07-18
+
+### Fixed
+- KOReader commit 751b497 removed `Device:unpackArchive`, breaking plugin and binary updates on newer KOReader builds. Added `U.unpackArchive` with a direct `ffi/archiver` fallback so updates work on all KOReader versions.
+
 ## [v1.1.9] — 2026-06-21
 
 ### Fixed
