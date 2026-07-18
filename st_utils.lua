@@ -874,4 +874,41 @@ return {
         _data_dir_cache, _data_dir_reason, _data_dir_note = dir, reason, note
         return dir, reason, note
     end,
+	
+	-- Unpack an archive, with fallback for KOReader builds that removed
+    -- Device:unpackArchive (koreader@751b497).
+    unpackArchive = function(archive, extract_to, strip_root)
+        if Device.unpackArchive then
+            return Device:unpackArchive(archive, extract_to, strip_root)
+        end
+        local Archiver = require("ffi/archiver")
+        local arc = Archiver.Reader:new()
+        local ok = arc:open(archive)
+        if ok then
+            for entry in arc:iterate() do
+                local dest_path = entry.path
+                if strip_root then
+                    local _, tail = dest_path:match("([^/]*)/*(.*)")
+                    if tail then
+                        dest_path = tail
+                    elseif entry.mode == 'directory' then
+                        goto continue
+                    end
+                end
+                if not arc:extractToPath(entry.path, extract_to .. "/" .. dest_path) then
+                    break
+                end
+                ::continue::
+            end
+            ok = not arc.err
+        end
+        if ok then
+            pcall(os.remove, archive)
+        end
+        arc:close()
+        if not ok then
+            return false, tostring(arc.err or "unknown error")
+        end
+        return true
+    end,
 }
