@@ -359,7 +359,7 @@ function Legacy.downloadBinary(self, version, callback)
         end
 
         -- Extract
-        local extract_ok = Device:unpackArchive(tmp_tar, tmp_dir, true)
+        local extract_ok = U.unpackArchive(tmp_tar, tmp_dir, true)
         if not extract_ok then
             local err_msg = _("Extraction failed. The archive may be corrupt. Please try again.")
             fail_download(err_msg)
