@@ -4,15 +4,13 @@
 
 ### Fixed
 - **Downloading the legacy binary could fail with "did not contain a valid Linux
-  Syncthing binary".**  It could
-  return a shell script, which was then correctly rejected as not an executable.
-  The legacy download was affected on every device, because its extractor always
-  produced the layout where the helper scripts fell inside the search depth; the
-  ordinary binary update was affected only when it fell back from system `tar`.
-  The executable is now selected by its path inside the archive and extracted on
-  its own, so nothing is searched for and nothing else is written to disk.
-  Verified against the v1.2.2, v1.27.12 and v2.x archives — including v1.2.2,
-  which lists its entries in a different order.
+  Syncthing binary".** A release archive holds three entries named `syncthing`,
+  and the plugin picked whichever the filesystem happened to list first —
+  sometimes one of the two helper scripts, which was then correctly rejected as
+  not an executable. The legacy download was affected on every device; the
+  ordinary binary update only when it fell back from system `tar`. The
+  executable is now selected by its path inside the archive and extracted on its
+  own. Verified against the v1.2.2, v1.27.12 and v2.x archives.
 - **The old-kernel notice reappeared on almost every wake.** The hint pointing
   at Legacy mode was meant to show once, but nothing recorded that it had been
   shown, and `init()` runs on every plugin instantiation — each FileManager to
