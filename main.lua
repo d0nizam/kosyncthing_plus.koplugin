@@ -332,8 +332,22 @@ function Syncthing:init()
 	-- show a non-blocking notice the first time the user opens the plugin.
 	-- We delay it by 6 s so it appears after the UI has fully settled and is
 	-- not hidden behind the loading screen.
-	if self._kernel_needs_legacy and not U.isLegacy() then
+	--
+	-- The "one-time" part needs a persistent flag: init() runs on every plugin
+	-- instantiation (each FileManager <-> Reader transition, and after resume),
+	-- so without it the notice reappears for the whole life of the install on
+	-- an old-kernel device -- and, being a delayed popup, it lands on top of
+	-- whatever is drawing at the time (e.g. a lock-screen plugin).  The flag is
+	-- set when the notice is actually shown, not when it is scheduled, so
+	-- closing KOReader within the 6 s window does not consume it.  The standing
+	-- information stays available in the menu, which shows "Legacy Syncthing" with
+	-- a warning marker whenever the kernel needs it.
+	local _legacy_hint_key = "syncthing_legacy_hint_seen"
+	if self._kernel_needs_legacy and not U.isLegacy()
+		and not G_reader_settings:isTrue(_legacy_hint_key) then
 		UIManager:scheduleIn(6, function()
+			-- Re-check: legacy mode may have been enabled during the delay.
+			if U.isLegacy() or G_reader_settings:isTrue(_legacy_hint_key) then return end
 			UIManager:show(InfoMessage:new{
 				timeout = 10,
 				text    = _(
@@ -341,6 +355,7 @@ function Syncthing:init()
 				 .. "If Syncthing fails to start, enable Legacy mode\n"
 				 .. "in Setup → Legacy Syncthing."),
 			})
+			G_reader_settings:saveSetting(_legacy_hint_key, true)
 		end)
 	end
 
