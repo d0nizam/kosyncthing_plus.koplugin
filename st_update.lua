@@ -140,33 +140,39 @@ local function _finishInstallation(self, version, post_install_callback, lease)
     os.execute("rm -rf '" .. U.shellEscape(tmp_extract_path) .. "'")
     os.execute("mkdir -p '" .. U.shellEscape(tmp_extract_path) .. "'")
 
-    -- Prefer system tar: always available, handles all tar.gz variants,
-    -- and finishes only after all writes are complete (no FUSE flush issues).
-    local extract_ok = U.execOk(os.execute(
-        "tar -xzf '" .. U.shellEscape(tmp_tar_path) .. "' -C '" .. U.shellEscape(tmp_extract_path) .. "'"))
+    -- Extract just the executable.  A release archive contains three entries
+    -- named `syncthing`: the ELF binary at the archive root plus helper scripts
+    -- under etc/.  Selecting the entry inside the archive is unambiguous; see
+    -- U.extractBinaryFromArchive for why searching the unpacked tree by name
+    -- was not.
+    --
+    -- Measured on a FUSE mount: extractToPath closes the destination file
+    -- before it returns, and the file is complete and readable immediately —
+    -- so this path needs no special flush handling of its own.
+    local binary_path = tmp_extract_path .. "/syncthing"
+    local extract_ok, extract_err = U.extractBinaryFromArchive(tmp_tar_path, binary_path)
     if not extract_ok then
-        -- Fall back to KOReader's built-in libarchive wrapper
+        -- Fall back to system tar (present on all supported devices) in case
+        -- ffi/archiver is missing or fails.  Unpack the whole tree with
+        -- --strip-components=1, which lands the executable at <dir>/syncthing:
+        -- a fixed path, so no scanning and no ambiguity with the etc/ scripts.
+        -- Do NOT pass a '*/syncthing' member pattern here: GNU tar rejects it
+        -- without --wildcards, and busybox tar has no --wildcards at all.
         os.execute("rm -rf '" .. U.shellEscape(tmp_extract_path) .. "'")
-        local libarchive_ok, libarchive_err = U.unpackArchive(tmp_tar_path, tmp_extract_path, true)
-        if not libarchive_ok then
+        os.execute("mkdir -p '" .. U.shellEscape(tmp_extract_path) .. "'")
+        local tar_ok = U.execOk(os.execute(
+            "tar -xzf '" .. U.shellEscape(tmp_tar_path) .. "' -C '"
+            .. U.shellEscape(tmp_extract_path) .. "' --strip-components=1"))
+        os.execute("sync")
+        if not tar_ok or not U.isELF(binary_path) then
             fail_install(_("The downloaded archive is corrupt or extraction failed.\n\nPlease try again.") ..
-                         (libarchive_err and "\n\nDetails: " .. tostring(libarchive_err) or ""))
+                         (extract_err and "\n\nDetails: " .. tostring(extract_err) or ""))
             return
         end
     end
 
-    -- Ensure all writes are flushed before scanning (belt and suspenders for FUSE)
+    -- Ensure all writes are flushed before use (belt and suspenders for FUSE)
     os.execute("sync")
-
-    local fp = io.popen(
-        "find '" .. U.shellEscape(tmp_extract_path) .. "' -name syncthing -type f -maxdepth 3 2>/dev/null")
-    local binary_path = fp and fp:read("*l")
-    if fp then fp:close() end
-
-    if not binary_path or binary_path == "" then
-        fail_install(_("Syncthing binary not found inside the archive.\n\nThis is unexpected — please report this to the plugin author."))
-        return
-    end
 
     if not U.isELF(binary_path) then
         fail_install(_("The downloaded archive did not contain a valid Linux Syncthing binary.\n\nPlease try again."))

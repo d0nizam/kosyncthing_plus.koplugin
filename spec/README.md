@@ -1,6 +1,6 @@
 # Test Suite
 
-506 tests across 16 spec files. No KOReader installation required — all
+516 tests across 16 spec files. No KOReader installation required — all
 platform modules are stubbed by the mock layer.
 
 ## Setup
@@ -101,17 +101,17 @@ Specs: 16, Passed: 16, Failed: 0
 | `st_orchestrator_spec.lua` | Lifecycle orchestration: autostart/stop, manual toggle, periodic sync scheduling, suspend/resume, Wi-Fi lease cleanup, reconcile, **opt-in auto-merge after sync** (`runSyncCompleted`), **a session-only pause flag gates Autostart**, **`hasNetwork()` LAN-only and full-offline paths**, **disconnect→reconnect cycle**, **three-way Autostart mode (off/wifi/always): start gating, force-Wi-Fi only on "always", mode-gated network-disconnect and charging** | 55 |
 | `st_timer_spec.lua` | Periodic timer cancellation through the public API | 1 |
 | `st_guard_spec.lua` | Named lease idempotency, standby/wakelock balance, exception-path release | 25 |
-| `st_utils_spec.lua` | Path helpers, `isTransientFolderError`, `formatTime`, `getFriendlySize`, settings key catalogue, loopback detection, **`detectArch`** (LuaJIT path, `uname -m` fallback, unknown/failure cases) | 65 |
+| `st_utils_spec.lua` | Path helpers, `isTransientFolderError`, `formatTime`, `getFriendlySize`, settings key catalogue, loopback detection, **`detectArch`** (LuaJIT path, `uname -m` fallback, unknown/failure cases), **`extractBinaryFromArchive`** (selects the root-level executable rather than the `etc/` helper scripts that share its name, size fallback, directory entries ignored, and the open/no-entry/extract-failure/archiver-missing paths) | 74 |
 | `st_android_spec.lua` | `androidApiCall` contract: status codes, JSON decode, error recording, TLS flag propagation; **IgnoreRegistry scanner wiring** (exclusion predicate seam, both `.`/`~` separators) | 25 |
 | `st_datadir_spec.lua` | Data-directory selection, legacy-path migration, FAT/FUSE detection | 11 |
 | `st_filesystem_spec.lua` | Safe-delete guard, dangerous-path rejection, conflict-file scanning, archive extraction | 36 |
 | `st_api_spec.lua` | `SafeClient` HTTP layer: GET/PUT/PATCH routing, error capture, cache invalidation | 33 |
-| `st_legacy_spec.lua` | Legacy-mode gate (`needsPatch`), `downloadBinary` URL/arch construction, archive validation (`fileSize`, `isGzip`, `isELF`), atomic staging install, `patchSyncthingObject` read-modify-write shim, **procfs kernel-detection fallback** (`/proc/sys/kernel/osrelease`, `/proc/version`) when `uname` is unavailable | 73 |
+| `st_legacy_spec.lua` | Legacy-mode gate (`needsPatch`), `downloadBinary` URL/arch construction, archive validation (`fileSize`, `isGzip`, `isELF`), atomic staging install, `patchSyncthingObject` read-modify-write shim, **procfs kernel-detection fallback** (`/proc/sys/kernel/osrelease`, `/proc/version`) when `uname` is unavailable, **two-stage extraction** (selective entry extraction, then a system-`tar` fallback for builds without `ffi/archiver`, asserting the fallback passes `--strip-components=1` and no member pattern) | 74 |
 | `st_process_spec.lua` | Binary lifecycle: `start`, `stop`, `kindlePortGuard`, Kindle UDP port guards, `binaryExists` (ELF check), `isRunning`, `safeHomeDir`, `applyNetworkSettings`, `stopPlugin`, **Autostart pause (session-only flag) set only on manual stop, cleared on start, absent on automatic/suspend stops** | 56 |
 | `st_api_public_spec.lua` | `IgnoreRegistry` companion API: `register` (single string or list, all-or-nothing validation, de-dup, **replace** semantics, idempotent generation bumps, apostrophe globs), `getAll` returns an independent copy, `unregister`/`isRegistered`, and **`matchesConflictBasename`** (de-mangles a conflict copy to its original and matches registered globs — exact names, `*` globs, both `.`/`~` separators, multi-dot originals, the conflict-copy gate, stray legacy values) | 16 |
 | `st_plugin_update_spec.lua` | Plugin self-updater pure logic: `parseVersion`/`isNewer` (numeric semver, differing component counts), `selectAsset` (release `.zip` asset vs `zipball_url` fallback and the strip-root flag), `stripMarkdown`, `getInstalledPluginVersion`, and a guard that the module hard-codes no `/tmp` path (not writable on Android) | 13 |
 | `st_update_download_spec.lua` | `downloadFile` LuaSocket transport: **no double-close** of the handle on success (`socketutil.file_sink` already closes it), partial-file removal + defensive close when `http.request` raises, non-200 returns false | 3 |
-| **Total** | | **506** |
+| **Total** | | **516** |
 
 ### Note on `st_process_spec` and Busted
 

@@ -136,6 +136,12 @@ local U = {
     isGzip   = function(_path) return FAKE.is_gzip ~= false end,
     isELF    = function(_path) return FAKE.is_elf  ~= false end,
     unpackArchive = function(_, _, _, _) return FAKE.unpack ~= false end,
+    -- Selective single-entry extraction used by downloadBinary.  FAKE.unpack
+    -- keeps driving the failure path so existing tests read the same way.
+    extractBinaryFromArchive = function(_archive, _dest)
+        if FAKE.unpack == false then return false, "extraction failed" end
+        return true
+    end,
 }
 package.loaded["st_utils"] = U
 
@@ -335,21 +341,47 @@ describe("Legacy.downloadBinary state machine + error handling", function()
         assert.is_nil(SETTINGS["syncthing_legacy_installed_version"])
         EXEC_FAIL = {}
     end)
-    it("extraction fails: callback(false), nothing installed", function()
-        reset_exec(); reset_settings(); FAKE.unpack = false
+    it("extraction fails (both archiver and tar): callback(false), nothing installed", function()
+        -- Extraction now has two stages: selective extraction via ffi/archiver,
+        -- then system tar as a fallback.  "Extraction failed" therefore means
+        -- both of them failed.
+        reset_exec(); reset_settings(); FAKE.unpack = false; EXEC_FAIL = { "tar" }
         local cb_ok = "unset"
         fresh_legacy().downloadBinary(self_obj(), "v1.27.12", function(o) cb_ok = o end)
         assert.is_false(cb_ok)
         assert.is_nil(SETTINGS["syncthing_legacy_installed_version"])
+        FAKE.unpack = true; EXEC_FAIL = {}
+    end)
+
+    it("archiver unavailable: falls back to system tar and installs", function()
+        -- Old KOReader builds may lack ffi/archiver; legacy mode runs on the
+        -- oldest devices, so the tar fallback must carry the install through.
+        reset_exec(); reset_settings(); FAKE.unpack = false
+        local cb_ok, cb_err
+        fresh_legacy().downloadBinary(self_obj(), "v1.27.12", function(o, e) cb_ok, cb_err = o, e end)
+        assert.is_true(cb_ok)
+        assert.is_nil(cb_err)
+        assert.are.equal("v1.27.12", SETTINGS["syncthing_legacy_installed_version"])
+        -- The fallback must unpack with --strip-components=1 and no member
+        -- pattern: GNU tar rejects a pattern without --wildcards, and busybox
+        -- tar has no --wildcards at all.
+        local tar_cmd = find_log("tar -xzf")
+        assert.is_truthy(tar_cmd)
+        assert.is_truthy(tar_cmd:find("--strip-components=1", 1, true))
+        assert.is_nil(tar_cmd:find("*/syncthing", 1, true))
         FAKE.unpack = true
     end)
-    it("binary not found in archive: callback(false), nothing installed", function()
-        reset_exec(); reset_settings(); FAKE.find_result = ""
+    it("extracted file is not an ELF: callback(false), nothing installed", function()
+        -- Was "binary not found in archive" back when the binary was located
+        -- with `find` after unpacking the whole tree.  Extraction is now
+        -- selective, so the equivalent failure is: something was extracted but
+        -- it is not a Linux executable.
+        reset_exec(); reset_settings(); FAKE.is_elf = false
         local cb_ok = "unset"
         fresh_legacy().downloadBinary(self_obj(), "v1.27.12", function(o) cb_ok = o end)
         assert.is_false(cb_ok)
         assert.is_nil(SETTINGS["syncthing_legacy_installed_version"])
-        FAKE.find_result = "/tmp/x/syncthing"
+        FAKE.is_elf = nil
     end)
     it("install (mv) fails on read-only fs: callback(false), nothing installed", function()
         -- The first mv is to a .new staging file; fail only that one.

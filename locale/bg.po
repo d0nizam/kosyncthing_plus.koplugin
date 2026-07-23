@@ -68,11 +68,11 @@ msgstr ""
 msgid "  (only this device)"
 msgstr "  (само това устройство)"
 
-#: st_menu.lua:2204 st_menu.lua:2553
+#: st_menu.lua:2200 st_menu.lua:2549
 msgid " — tap to resolve"
 msgstr " — докоснете за разрешаване"
 
-#: st_menu.lua:2209 st_menu.lua:2558
+#: st_menu.lua:2205 st_menu.lua:2554
 msgid " — tap to view"
 msgstr " — докоснете за преглед"
 
@@ -94,7 +94,7 @@ msgid_plural "%1 folders could not be updated."
 msgstr[0] "%1 папка не можа да бъде обновена."
 msgstr[1] "%1 папки не можаха да бъдат обновени."
 
-#: st_health.lua:216
+#: st_health.lua:219
 msgid "%1 folder paused"
 msgid_plural "%1 folders paused"
 msgstr[0] "%1 папка на пауза"
@@ -118,7 +118,7 @@ msgstr[1] ""
 "\n"
 "Syncthing няма да прехвърля файлове, докато не ги възобновите."
 
-#: st_health.lua:199
+#: st_health.lua:202
 msgid "%1 folder reporting errors"
 msgid_plural "%1 folders reporting errors"
 msgstr[0] "%1 папка съобщава за грешки"
@@ -142,7 +142,7 @@ msgstr[1] ""
 "\n"
 "Syncthing скоро ще започне синхронизация."
 
-#: st_health.lua:191
+#: st_health.lua:194
 msgid "%1 folder up to date"
 msgid_plural "%1 folders up to date"
 msgstr[0] "%1 папка актуална"
@@ -154,13 +154,13 @@ msgid_plural "%1 items (%2)"
 msgstr[0] "%1 елемент (%2)"
 msgstr[1] "%1 елемента (%2)"
 
-#: st_health.lua:236
+#: st_health.lua:239
 msgid "%1 sync conflict needs attention"
 msgid_plural "%1 sync conflicts need attention"
 msgstr[0] "%1 конфликт при синхронизация изисква внимание"
 msgstr[1] "%1 конфликта при синхронизация изискват внимание"
 
-#: st_health.lua:252
+#: st_health.lua:255
 msgid "%1/%2 remote device online"
 msgid_plural "%1/%2 remote devices online"
 msgstr[0] "%1/%2 отдалечено устройство онлайн"
@@ -186,7 +186,7 @@ msgid_plural "Auto-merged reading progress: %1 conflicts."
 msgstr[0] "Автоматично обединяване на напредъка: %1 конфликт."
 msgstr[1] "Автоматично обединяване на напредъка: %1 конфликта."
 
-#: st_menu.lua:1327 st_menu.lua:2282
+#: st_menu.lua:1327 st_menu.lua:2278
 msgid ""
 "Automatically merge reading-progress conflicts after every Quick Sync completes.\n"
 "\n"
@@ -204,7 +204,7 @@ msgstr ""
 "\n"
 "Сравнява само позицията на четене: копието, което е по-напред, печели целия придружаващ файл, така че маркирания, направени върху копие, което не е стигнало най-далеч, могат да бъдат презаписани. Пропуска се, докато книга е отворена."
 
-#: st_menu.lua:2397
+#: st_menu.lua:2393
 msgid ""
 "Check GitHub for a newer release of the KOSyncthing+ plugin and install it in place.\n"
 "\n"
@@ -232,7 +232,7 @@ msgstr "Провери за актуализации на плъгина"
 msgid "Check for plugin updates  (%1 installed)"
 msgstr "Провери за актуализации на плъгина  (%1 инсталирана)"
 
-#: st_menu.lua:2394
+#: st_menu.lua:2390
 msgid "Check for updates  (%1 installed)"
 msgstr "Провери за актуализации  (%1 инсталирана)"
 
@@ -274,7 +274,7 @@ msgstr "Неуспешна проверка за актуализации."
 msgid "Could not read release information from GitHub."
 msgstr "Не можа да се прочете информация за версията от GitHub."
 
-#: st_update.lua:222
+#: st_update.lua:223
 msgid ""
 "Could not replace the old Syncthing binary.\n"
 "\n"
@@ -284,7 +284,7 @@ msgstr ""
 "\n"
 "Папката за плъгини може да е във файлова система само за четене."
 
-#: legacy.lua:432
+#: legacy.lua:427
 msgid ""
 "Could not replace the old legacy binary.\n"
 "\n"
@@ -298,7 +298,7 @@ msgstr ""
 msgid "Devices"
 msgstr "Устройства"
 
-#: legacy.lua:356 st_update.lua:329
+#: legacy.lua:356 st_update.lua:330
 msgid ""
 "Downloaded file is not the expected Linux tar.gz archive.\n"
 "\n"
@@ -308,7 +308,7 @@ msgstr ""
 "\n"
 "Моля, опитайте отново."
 
-#: legacy.lua:347 st_update.lua:299
+#: legacy.lua:347 st_update.lua:300
 msgid ""
 "Downloaded file is too small to be a Syncthing archive.\n"
 "\n"
@@ -327,21 +327,12 @@ msgid "Downloading update…"
 msgstr "Изтегляне на актуализацията…"
 
 #: st_menu.lua:803
-msgid ""
-"Each folder and its sync state. Tap a folder to see its path, what's left to"
-" sync, and to pause, rescan, or remove it."
-msgstr ""
-"Всяка папка със състоянието на синхронизацията ѝ. Докосни папка за пътя ѝ, "
-"какво остава да се синхронизира, и за пауза, повторно сканиране или "
-"премахване."
+msgid "Each folder and its sync state. Tap a folder to see its path, what's left to sync, and to pause, rescan, or remove it."
+msgstr "Всяка папка със състоянието на синхронизацията ѝ. Докосни папка за пътя ѝ, какво остава да се синхронизира, и за пауза, повторно сканиране или премахване."
 
 #: st_menu.lua:926
-msgid ""
-"Each remote device and its connection status. Tap a device to see its ID and"
-" address, and to pause or resume syncing."
-msgstr ""
-"Всяко отдалечено устройство със състоянието на връзката. Докосни устройство "
-"за неговото ID и адрес, и за пауза или възобновяване на синхронизацията."
+msgid "Each remote device and its connection status. Tap a device to see its ID and address, and to pause or resume syncing."
+msgstr "Всяко отдалечено устройство със състоянието на връзката. Докосни устройство за неговото ID и адрес, и за пауза или възобновяване на синхронизацията."
 
 #: st_menu.lua:85
 msgid "Enable auto-merge"
@@ -445,20 +436,15 @@ msgstr "Запази входящата (%1)"
 
 #: st_conflict.lua:149
 msgid "Kept the incoming version of \"%1\". Your conflict copy was deleted."
-msgstr ""
-"Запазена е входящата версия на „%1“. Вашето конфликтно копие е изтрито."
+msgstr "Запазена е входящата версия на „%1“. Вашето конфликтно копие е изтрито."
 
 #: st_menu.lua:1647
 msgid "Logs"
 msgstr "Дневници"
 
 #: st_menu.lua:2020
-msgid ""
-"No API key found. Make sure Syncthing has been started at least once, or "
-"enter it in the connection settings."
-msgstr ""
-"Не е намерен API ключ. Уверете се, че Syncthing е бил стартиран поне веднъж,"
-" или го въведете в настройките на връзката."
+msgid "No API key found. Make sure Syncthing has been started at least once, or enter it in the connection settings."
+msgstr "Не е намерен API ключ. Уверете се, че Syncthing е бил стартиран поне веднъж, или го въведете в настройките на връзката."
 
 #: st_plugin_update.lua:109
 msgid "Open"
@@ -472,7 +458,7 @@ msgstr "Отворете страницата с версиите в брауз�
 msgid "Original message: %1"
 msgstr "Оригинално съобщение: %1"
 
-#: st_menu.lua:2318 st_menu.lua:2675
+#: st_menu.lua:2314 st_menu.lua:2671
 msgid "Pause the folder"
 msgid_plural "Pause all %1 folders"
 msgstr[0] "Постави папката на пауза"
@@ -505,14 +491,8 @@ msgstr[0] "Бърза синхронизация: %1 заявка за скан�
 msgstr[1] "Бърза синхронизация: %1 заявки за сканиране на папка не успяха."
 
 #: st_process.lua:716
-msgid ""
-"Re-install it from Maintenance → Check for updates, or download the correct "
-"binary for your device from github.com/syncthing/syncthing/releases and "
-"place it in the plugin folder."
-msgstr ""
-"Преинсталирайте го от Поддръжка → Провери за актуализации, или изтеглете "
-"правилния изпълним файл за вашето устройство от "
-"github.com/syncthing/syncthing/releases и го поставете в папката на плъгина."
+msgid "Re-install it from Maintenance → Check for updates, or download the correct binary for your device from github.com/syncthing/syncthing/releases and place it in the plugin folder."
+msgstr "Преинсталирайте го от Поддръжка → Провери за актуализации, или изтеглете правилния изпълним файл за вашето устройство от github.com/syncthing/syncthing/releases и го поставете в папката на плъгина."
 
 #: st_conflict.lua:248
 msgid ""
@@ -590,25 +570,21 @@ msgstr ""
 "\n"
 "Входящата промяна ще бъде отхвърлена. Това не може да бъде отменено."
 
-#: st_menu.lua:2317 st_menu.lua:2671
+#: st_menu.lua:2313 st_menu.lua:2667
 msgid "Resume %1 paused folder"
 msgid_plural "Resume %1 paused folders"
 msgstr[0] "Възобнови %1 папка на пауза"
 msgstr[1] "Възобнови %1 папки на пауза"
 
-#: st_menu.lua:2669
+#: st_menu.lua:2665
 msgid "Resume the folder"
 msgid_plural "Resume all %1 folders"
 msgstr[0] "Възобнови папката"
 msgstr[1] "Възобнови всички %1 папки"
 
 #: st_menu.lua:337
-msgid ""
-"Some items couldn't be synced. Try rescanning the folder. If it keeps "
-"happening, see the original message below."
-msgstr ""
-"Някои елементи не успяха да се синхронизират. Опитай повторно сканиране на "
-"папката. Ако се повтаря, виж оригиналното съобщение по-долу."
+msgid "Some items couldn't be synced. Try rescanning the folder. If it keeps happening, see the original message below."
+msgstr "Някои елементи не успяха да се синхронизират. Опитай повторно сканиране на папката. Ако се повтаря, виж оригиналното съобщение по-долу."
 
 #: st_menu.lua:1369
 msgid "Start mode"
@@ -624,7 +600,7 @@ msgid_plural "Sync conflicts detected: %1 files"
 msgstr[0] "Открит е конфликт при синхронизиране: %1 файл"
 msgstr[1] "Открити са конфликти при синхронизиране: %1 файла"
 
-#: st_health.lua:177
+#: st_health.lua:180
 msgid "Syncing %1 folder · %2 remaining"
 msgid_plural "Syncing %1 folders · %2 remaining"
 msgstr[0] "Синхронизира се %1 папка · Остават %2"
@@ -683,14 +659,10 @@ msgstr ""
 "Ръчното спиране на Syncthing го оставя спрян, докато не го стартирате отново или не рестартирате KOReader."
 
 #: st_menu.lua:2012
-msgid ""
-"The API key gives full access to Syncthing's settings via its REST API. Keep"
-" it secret."
-msgstr ""
-"Ключът за API дава пълен достъп до настройките на Syncthing чрез неговия "
-"REST API. Запазете го в тайна."
+msgid "The API key gives full access to Syncthing's settings via its REST API. Keep it secret."
+msgstr "Ключът за API дава пълен достъп до настройките на Syncthing чрез неговия REST API. Запазете го в тайна."
 
-#: legacy.lua:382 st_update.lua:172
+#: legacy.lua:377 st_update.lua:173
 msgid ""
 "The downloaded archive did not contain a valid Linux Syncthing binary.\n"
 "\n"
@@ -700,7 +672,7 @@ msgstr ""
 "\n"
 "Моля, опитайте отново."
 
-#: st_update.lua:205
+#: st_update.lua:206
 msgid ""
 "The downloaded binary could not be made executable.\n"
 "\n"
@@ -714,7 +686,7 @@ msgstr ""
 msgid "The downloaded file does not look like a plugin archive."
 msgstr "Изтегленият файл не изглежда като архивът на плъгина."
 
-#: legacy.lua:421 st_update.lua:210
+#: legacy.lua:416 st_update.lua:211
 msgid ""
 "The installed file is not a valid Linux executable.\n"
 "\n"
@@ -738,7 +710,7 @@ msgstr ""
 "\n"
 "Първо включете Автоматично стартиране (\"Когато Wi-Fi е включен\" или \"Винаги\") или \"Периодична Бърза синхронизация\"."
 
-#: st_health.lua:141
+#: st_health.lua:144
 msgid "Up to date · %1/%2 device online"
 msgid_plural "Up to date · %1/%2 devices online"
 msgstr[0] "Актуално · %1/%2 устройство онлайн"
@@ -761,11 +733,8 @@ msgid "Update failed."
 msgstr "Актуализацията е неуспешна."
 
 #: st_menu.lua:1650
-msgid ""
-"View the full log, show only errors, or delete the log file to free space."
-msgstr ""
-"Вижте пълния дневник, покажете само грешките или изтрийте дневника, за да "
-"освободите място."
+msgid "View the full log, show only errors, or delete the log file to free space."
+msgstr "Вижте пълния дневник, покажете само грешките или изтрийте дневника, за да освободите място."
 
 #: st_menu.lua:1648
 msgid "View, filter, or clear the Syncthing log."
@@ -838,12 +807,8 @@ msgid "When Wi-Fi is on"
 msgstr "Когато Wi-Fi е включен"
 
 #: st_process.lua:713
-msgid ""
-"Your device's kernel is too old for the current Syncthing — set up Legacy "
-"mode from Setup → Legacy Syncthing."
-msgstr ""
-"Ядрото на устройството ви е твърде старо за текущия Syncthing — настройте "
-"режима за стари устройства от Настройка → Syncthing за стари устройства."
+msgid "Your device's kernel is too old for the current Syncthing — set up Legacy mode from Setup → Legacy Syncthing."
+msgstr "Ядрото на устройството ви е твърде старо за текущия Syncthing — настройте режима за стари устройства от Настройка → Syncthing за стари устройства."
 
 #: st_conflict.lua:177
 msgid "Your version of \"%1\" restored."
@@ -853,7 +818,7 @@ msgstr "Вашата версия на „%1“ е възстановена."
 msgid "no date"
 msgstr "без дата"
 
-#: st_menu.lua:2724
+#: st_menu.lua:2720
 msgid "on Wi-Fi"
 msgstr "при Wi-Fi"
 
@@ -941,7 +906,7 @@ msgstr ""
 "\n"
 "Използвайте „Разреши всички“, за да приложите една стратегия към всички конфликти наведнъж, или докоснете отделен конфликт, за да изберете действие само за него."
 
-#: st_update.lua:441
+#: st_update.lua:442
 msgid ""
 "A new version is available!\n"
 "\n"
@@ -987,11 +952,11 @@ msgstr "Адрес"
 msgid "All API errors cleared."
 msgstr "Всички API грешки са изчистени."
 
-#: st_health.lua:136 st_health.lua:184
+#: st_health.lua:139 st_health.lua:187
 msgid "All folders paused"
 msgstr "Всички папки са на пауза"
 
-#: st_menu.lua:2722
+#: st_menu.lua:2718
 msgid "always"
 msgstr "винаги"
 
@@ -1041,7 +1006,7 @@ msgstr ""
 "\n"
 "И двата варианта са безопасни и могат да се приложат отново по всяко време."
 
-#: st_update.lua:419
+#: st_update.lua:420
 msgid ""
 "Architecture detection warning\n"
 "\n"
@@ -1103,7 +1068,7 @@ msgstr ""
 "\n"
 "За напълно автоматична работа задайте „Действие, когато Wi‑Fi е изключен“ на „включване“ в KOReader → Мрежа."
 
-#: st_menu.lua:2729
+#: st_menu.lua:2725
 msgid "Automation"
 msgstr "Автоматизация"
 
@@ -1117,26 +1082,21 @@ msgstr ""
 "\n"
 "Полезно, когато имате голяма библиотека и не искате неочаквано включване на Wi-Fi да изтощи батерията ви по време на четене."
 
-#: st_menu.lua:2728
+#: st_menu.lua:2724
 msgid "Automation: %1"
 msgstr "Автоматизация: %1"
-
-#: legacy.lua:376
-msgid "Binary not found inside the downloaded archive. Please try again."
-msgstr ""
-"Изпълнимият файл не беше намерен в изтегления архив. Моля, опитайте отново."
 
 #: st_menu.lua:1979
 msgid "Body"
 msgstr "Тяло"
 
-#: legacy.lua:697 legacy.lua:734 legacy.lua:800 legacy.lua:844
+#: legacy.lua:692 legacy.lua:729 legacy.lua:795 legacy.lua:839
 #: st_android.lua:414 st_conflict.lua:166 st_menu.lua:75 st_menu.lua:86
 #: st_menu.lua:174 st_menu.lua:474 st_menu.lua:1054 st_menu.lua:1090
 #: st_menu.lua:1201 st_menu.lua:1445 st_menu.lua:1634 st_menu.lua:2041
 #: st_menu.lua:2071 st_pair.lua:221 st_pair.lua:413 st_reset.lua:249
 #: st_reset.lua:265 st_reset.lua:276 st_settings.lua:44 st_settings.lua:65
-#: st_settings.lua:134 st_update.lua:429
+#: st_settings.lua:134 st_update.lua:430
 msgid "Cancel"
 msgstr "Отказ"
 
@@ -1166,7 +1126,7 @@ msgstr ""
 msgid "Cannot use this path — it is a system directory."
 msgstr "Не може да се използва този път — това е системна директория."
 
-#: legacy.lua:863
+#: legacy.lua:858
 msgid ""
 "Change the legacy Syncthing version.\n"
 "\n"
@@ -1194,7 +1154,7 @@ msgstr ""
 "\n"
 "Спиране на Syncthing сега и продължаване?"
 
-#: st_menu.lua:2114 st_menu.lua:2395
+#: st_menu.lua:2114 st_menu.lua:2391
 msgid "Check for updates"
 msgstr "Провери за актуализации"
 
@@ -1208,7 +1168,7 @@ msgstr ""
 "\n"
 "Изисква се Wi-Fi. Текущо инсталираната версия е показана в етикета на менюто."
 
-#: st_update.lua:482
+#: st_update.lua:483
 msgid ""
 "Checking for updates…\n"
 "\n"
@@ -1284,7 +1244,7 @@ msgstr "Изчистване на лог файла"
 msgid "Clipboard not supported on this device."
 msgstr "Клипбордът не се поддържа на това устройство."
 
-#: st_menu.lua:506 st_menu.lua:875 st_menu.lua:992 st_menu.lua:2360
+#: st_menu.lua:506 st_menu.lua:875 st_menu.lua:992 st_menu.lua:2356
 msgid "Close"
 msgstr "Затвори"
 
@@ -1310,7 +1270,7 @@ msgstr ""
 "\n"
 "Да се ​​запази това конфликтно копие като нов файл или да се отхвърли?"
 
-#: st_menu.lua:2532
+#: st_menu.lua:2528
 msgid ""
 "Connect new devices, set the Web GUI password, change the Web GUI port, and adjust resource and network settings.\n"
 "\n"
@@ -1328,11 +1288,9 @@ msgstr "Свързан"
 msgid "Continue →"
 msgstr "Продължи →"
 
-#: _meta.lua:11
+#: _meta.lua:10
 msgid "Continuously sync files with other devices in a peer-to-peer manner."
-msgstr ""
-"Непрекъснато синхронизира файлове с други устройства чрез директна peer-to-"
-"peer връзка."
+msgstr "Непрекъснато синхронизира файлове с други устройства чрез директна peer-to-peer връзка."
 
 #: st_utils.lua:175
 msgid "Copied to clipboard."
@@ -1388,7 +1346,7 @@ msgstr ""
 "\n"
 "%1"
 
-#: st_update.lua:183
+#: st_update.lua:184
 msgid ""
 "Could not create plugin directory.\n"
 "Check file system permissions."
@@ -1416,7 +1374,7 @@ msgstr ""
 "\n"
 "Този конфликтен файл ще трябва да бъде разрешен ръчно."
 
-#: st_update.lua:198
+#: st_update.lua:199
 msgid ""
 "Could not install the binary into the plugin folder.\n"
 "\n"
@@ -1426,7 +1384,7 @@ msgstr ""
 "\n"
 "Папката може да е на файлова система само за четене."
 
-#: legacy.lua:395
+#: legacy.lua:390
 msgid ""
 "Could not install the legacy binary.\n"
 "\n"
@@ -1446,7 +1404,7 @@ msgstr ""
 "\n"
 "Демонът може все още да се стартира - изчакайте малко и опитайте отново."
 
-#: st_update.lua:371
+#: st_update.lua:372
 msgid ""
 "Could not read release information from GitHub.\n"
 "\n"
@@ -1554,7 +1512,7 @@ msgstr ""
 "\n"
 "Не стартира Syncthing — уеб интерфейсът ще бъде достъпен без удостоверяване."
 
-#: st_menu.lua:2526
+#: st_menu.lua:2522
 msgid ""
 "Dashboard showing what Syncthing is doing right now: per-folder state, connected remote devices, and any sync conflicts.\n"
 "\n"
@@ -1682,11 +1640,11 @@ msgstr ""
 "\n"
 "Докоснете устройство, за да го приемете или игнорирате; докоснете папка, за да я приемете."
 
-#: legacy.lua:843
+#: legacy.lua:838
 msgid "Disable"
 msgstr "Изключи"
 
-#: legacy.lua:841
+#: legacy.lua:836
 msgid ""
 "Disable legacy mode?\n"
 "\n"
@@ -1722,11 +1680,11 @@ msgstr ""
 "\n"
 "Изисква се Wi-Fi."
 
-#: st_update.lua:428
+#: st_update.lua:429
 msgid "Download anyway"
 msgstr "Изтегли все пак"
 
-#: legacy.lua:340 st_update.lua:286
+#: legacy.lua:340 st_update.lua:287
 msgid ""
 "Download failed.\n"
 "\n"
@@ -1736,11 +1694,11 @@ msgstr ""
 "\n"
 "Моля, проверете вашата Wi-Fi връзка и опитайте отново."
 
-#: legacy.lua:899
+#: legacy.lua:894
 msgid "Download legacy binary (%1)"
 msgstr "Изтегли изпълним файл за стари устройства (%1)"
 
-#: st_update.lua:314
+#: st_update.lua:315
 msgid ""
 "Downloaded file size is unexpected.\n"
 "\n"
@@ -1768,7 +1726,7 @@ msgstr ""
 "Това може да отнеме няколко минути.\n"
 "Моля, не затваряйте KOReader."
 
-#: st_update.lua:261
+#: st_update.lua:262
 msgid ""
 "Downloading Syncthing v%1…\n"
 "\n"
@@ -1780,7 +1738,7 @@ msgstr ""
 "Това може да отнеме няколко минути.\n"
 "Моля, не затваряйте KOReader."
 
-#: legacy.lua:696
+#: legacy.lua:691
 msgid "Enable v1.2.2"
 msgstr "Включи v1.2.2"
 
@@ -1796,10 +1754,9 @@ msgstr "Грешки"
 msgid "Everything is working as expected. No action needed."
 msgstr "Всичко работи според очакванията. Не е необходимо действие."
 
-#: legacy.lua:364
+#: legacy.lua:370
 msgid "Extraction failed. The archive may be corrupt. Please try again."
-msgstr ""
-"Разархивирането не успя. Архивът може да е повреден. Моля, опитайте отново."
+msgstr "Разархивирането не успя. Архивът може да е повреден. Моля, опитайте отново."
 
 #: st_reset.lua:61
 msgid ""
@@ -1879,7 +1836,7 @@ msgstr ""
 "\n"
 "Коя версия да се запази?"
 
-#: st_health.lua:207
+#: st_health.lua:210
 msgid "File watcher failed: %1"
 msgstr "Наблюдателят на файлове не успя: %1"
 
@@ -1918,12 +1875,8 @@ msgstr ""
 "Докоснете, за да видите подробности: пълен път, оставащи файлове, последно време на сканиране, последен синхронизиран файл и кои други устройства споделят тази папка."
 
 #: st_menu.lua:645
-msgid ""
-"Folder and device details are only available while Syncthing is running. "
-"Start it from the main menu first."
-msgstr ""
-"Подробностите за папката и устройството са достъпни само докато Syncthing "
-"работи. Първо го стартирайте от главното меню."
+msgid "Folder and device details are only available while Syncthing is running. Start it from the main menu first."
+msgstr "Подробностите за папката и устройството са достъпни само докато Syncthing работи. Първо го стартирайте от главното меню."
 
 #: st_menu.lua:422 st_menu.lua:878
 msgid "Full details"
@@ -1947,7 +1900,7 @@ msgstr "Игнорирай"
 msgid "Informational status — neither good nor bad."
 msgstr "Информационно състояние — нито добро, нито лошо."
 
-#: st_menu.lua:2119 st_menu.lua:2622
+#: st_menu.lua:2119 st_menu.lua:2618
 msgid "Install Syncthing binary"
 msgstr "Инсталирай Syncthing"
 
@@ -1987,7 +1940,7 @@ msgstr "Последно видян"
 msgid "Last seen: %1"
 msgstr "Последно виждан: %1"
 
-#: legacy.lua:667 legacy.lua:913 st_menu.lua:1135 st_plugin_update.lua:161
+#: legacy.lua:662 legacy.lua:908 st_menu.lua:1135 st_plugin_update.lua:161
 #: st_plugin_update.lua:216 st_process.lua:1198
 msgid "Later"
 msgstr "По-късно"
@@ -1996,7 +1949,7 @@ msgstr "По-късно"
 msgid "Leave empty to remove the password"
 msgstr "Оставете празно, за да премахнете паролата"
 
-#: legacy.lua:818
+#: legacy.lua:813
 msgid ""
 "Legacy mode runs an older Syncthing binary that is compatible with devices whose Linux kernel is older than 3.2.\n"
 "\n"
@@ -2014,7 +1967,7 @@ msgstr ""
 "• v1.27.12 — ядра 2.6.32–3.1, пълна API поддръжка\n"
 "• v1.2.2   — ядра под 2.6.32 (напр. Kindle PW1), ограничен API"
 
-#: legacy.lua:829
+#: legacy.lua:824
 msgid "Legacy mode: ON (%1)"
 msgstr "Режим за стари устройства: ВКЛ. (%1)"
 
@@ -2026,7 +1979,7 @@ msgstr "Syncthing за стари устройства"
 msgid "Legacy Syncthing ⚠"
 msgstr "Syncthing за стари устройства ⚠"
 
-#: legacy.lua:870
+#: legacy.lua:865
 msgid "Legacy version: %1"
 msgstr "Версия за стари устройства: %1"
 
@@ -2038,7 +1991,7 @@ msgstr "Регистрационният файл е изтрит."
 msgid "Log file is empty."
 msgstr "Лог файлът е празен."
 
-#: st_menu.lua:2543
+#: st_menu.lua:2539
 msgid ""
 "Logs, updates, debug info, and reset options.\n"
 "\n"
@@ -2048,7 +2001,7 @@ msgstr ""
 "\n"
 "Повечето потребители няма да имат нужда от нищо тук. Полезно при докладване на грешки или възстановяване от повредена настройка."
 
-#: st_menu.lua:2737
+#: st_menu.lua:2733
 msgid "Maintenance"
 msgstr "Поддръжка"
 
@@ -2106,7 +2059,7 @@ msgstr "Няма налична допълнителна помощ за тоз�
 msgid "No API errors recorded."
 msgstr "Няма записани API грешки."
 
-#: st_update.lua:406
+#: st_update.lua:407
 msgid ""
 "No binary found for this device.\n"
 "\n"
@@ -2128,7 +2081,7 @@ msgstr ""
 msgid "No errors found in the log."
 msgstr "Няма намерени грешки в дневника."
 
-#: st_health.lua:171
+#: st_health.lua:174
 msgid "No folders are configured yet"
 msgstr "Все още няма конфигурирани папки"
 
@@ -2176,11 +2129,11 @@ msgstr ""
 "\n"
 "Тази опция става достъпна, след като Syncthing не успее да отговори на заявка — полезна при докладване на грешки."
 
-#: st_health.lua:258
+#: st_health.lua:261
 msgid "No remote devices currently online"
 msgstr "В момента няма онлайн отдалечени устройства"
 
-#: st_health.lua:242
+#: st_health.lua:245
 msgid "No sync conflicts"
 msgstr "Няма конфликти при синхронизиране"
 
@@ -2192,7 +2145,7 @@ msgstr "няма"
 msgid "none yet"
 msgstr "все още няма"
 
-#: st_update.lua:474
+#: st_update.lua:475
 msgid ""
 "Not enough free space to download Syncthing.\n"
 "\n"
@@ -2204,13 +2157,11 @@ msgstr ""
 "Безплатно: %1\n"
 "Изисква се: 20 MB"
 
-#: st_health.lua:98
+#: st_health.lua:101
 msgid "Not installed — use \"Install Syncthing binary\" below"
-msgstr ""
-"Не е инсталиран — използвайте „Инсталиране на изпълнимия файл на Syncthing“ "
-"по-долу"
+msgstr "Не е инсталиран — използвайте „Инсталиране на изпълнимия файл на Syncthing“ по-долу"
 
-#: st_update.lua:450
+#: st_update.lua:451
 msgid "Not now"
 msgstr "Не сега"
 
@@ -2236,7 +2187,7 @@ msgstr ""
 "\n"
 "Или сканирайте QR кода с друго устройство."
 
-#: st_menu.lua:1009 st_menu.lua:2374
+#: st_menu.lua:1009 st_menu.lua:2370
 msgid "Pair with another device"
 msgstr "Сдвояване с друго устройство"
 
@@ -2336,7 +2287,7 @@ msgstr "Пътека"
 msgid "Path cannot be empty."
 msgstr "Пътят не може да бъде празен."
 
-#: st_menu.lua:2318 st_menu.lua:2676
+#: st_menu.lua:2314 st_menu.lua:2672
 msgid "Pause all folders"
 msgstr "Постави на пауза всички папки"
 
@@ -2358,7 +2309,7 @@ msgstr ""
 "\n"
 "Проверете уеб интерфейс, за да проверите състоянието на папката."
 
-#: st_menu.lua:2522
+#: st_menu.lua:2518
 msgid ""
 "Pause syncing on all folders, or resume them all.\n"
 "\n"
@@ -2414,11 +2365,9 @@ msgstr "Настройките за производителност вече с
 
 #: st_process.lua:1082
 msgid "Performance settings reset to Syncthing defaults."
-msgstr ""
-"Настройките за производителност са върнати към стойностите по подразбиране "
-"на Syncthing."
+msgstr "Настройките за производителност са върнати към стойностите по подразбиране на Syncthing."
 
-#: st_menu.lua:2726
+#: st_menu.lua:2722
 msgid "periodic"
 msgstr "периодичен"
 
@@ -2462,7 +2411,7 @@ msgstr "Периодично синхронизиране: Syncthing спря н
 msgid "Periodic sync: Syncthing's API not responding."
 msgstr "Периодично синхронизиране: API на Syncthing не отговаря."
 
-#: st_menu.lua:2537
+#: st_menu.lua:2533
 msgid ""
 "Pick when Syncthing starts and stops automatically.\n"
 "\n"
@@ -2476,7 +2425,7 @@ msgstr ""
 "\n"
 "За повечето потребители това е най-добрият баланс между удобство и живот на батерията: Syncthing работи само когато е необходимо и четенето ви никога не е безпокоено."
 
-#: st_update.lua:465
+#: st_update.lua:466
 msgid "Please connect to the Internet before checking for updates."
 msgstr "Моля, свържи се с интернет, преди да провериш за актуализации."
 
@@ -2502,7 +2451,7 @@ msgstr "Подготвя се сканиране…"
 msgid "Preparing…"
 msgstr "Подготвя се…"
 
-#: st_menu.lua:2650
+#: st_menu.lua:2646
 msgid "Quick Sync"
 msgstr "Бърза синхронизация"
 
@@ -2526,9 +2475,7 @@ msgstr "Бързото синхронизиране вече е в ход."
 
 #: st_sync.lua:490
 msgid "Quick Sync timed out. Some files may not have been synced."
-msgstr ""
-"Времето за Бърза синхронизация изтече. Някои файлове може да не са "
-"синхронизирани."
+msgstr "Времето за Бърза синхронизация изтече. Някои файлове може да не са синхронизирани."
 
 #: st_sync.lua:384
 msgid "Quick Sync: Could not request a folder scan."
@@ -2554,7 +2501,7 @@ msgstr "Бърза синхронизация: Syncthing спря неочакв
 msgid "Quick Sync: Syncthing's API not responding."
 msgstr "Бърза синхронизация: API на Syncthing не отговаря."
 
-#: legacy.lua:897
+#: legacy.lua:892
 msgid "Re-download legacy binary (%1)"
 msgstr "Изтегли отново изпълнимия файл за стари устройства (%1)"
 
@@ -2620,7 +2567,7 @@ msgstr ""
 "\n"
 "Това не може да бъде отменено."
 
-#: st_menu.lua:2249 st_menu.lua:2648
+#: st_menu.lua:2245 st_menu.lua:2644
 msgid "Rescan all folders"
 msgstr "Повторно сканиране на всички папки"
 
@@ -2715,12 +2662,8 @@ msgstr ""
 "Рестартиране на Syncthing сега?"
 
 #: st_menu.lua:1146
-msgid ""
-"Resource profile saved. All limits (including memory/CPU) will apply on next"
-" start."
-msgstr ""
-"Профилът на ресурса е запазен. Всички ограничения (включително памет/CPU) ще"
-" се прилагат при следващото стартиране."
+msgid "Resource profile saved. All limits (including memory/CPU) will apply on next start."
+msgstr "Профилът на ресурса е запазен. Всички ограничения (включително памет/CPU) ще се прилагат при следващото стартиране."
 
 #: st_menu.lua:1113
 msgid "Resource profile: Low"
@@ -2756,7 +2699,7 @@ msgstr ""
 "\n"
 "Проверете уеб интерфейс, за да проверите състоянието на папката."
 
-#: st_menu.lua:2513
+#: st_menu.lua:2509
 msgid ""
 "Run a one-shot sync: start Syncthing, scan your folders, exchange changes, then stop.\n"
 "\n"
@@ -2808,7 +2751,7 @@ msgstr ""
 msgid "Set password"
 msgstr "Задай парола"
 
-#: st_menu.lua:2712
+#: st_menu.lua:2708
 msgid "Setup"
 msgstr "Настройка"
 
@@ -2853,18 +2796,14 @@ msgid "Show notifications"
 msgstr "Показване на известия"
 
 #: st_menu.lua:1590
-msgid ""
-"Show only the warning and error lines from the Syncthing log, filtering out "
-"routine information."
-msgstr ""
-"Показвайте само редовете за предупреждение и грешка от регистрационния файл "
-"на Syncthing, като филтрирате рутинната информация."
+msgid "Show only the warning and error lines from the Syncthing log, filtering out routine information."
+msgstr "Показвайте само редовете за предупреждение и грешка от регистрационния файл на Syncthing, като филтрирате рутинната информация."
 
-#: st_menu.lua:991 st_menu.lua:2359 st_pair.lua:220
+#: st_menu.lua:991 st_menu.lua:2355 st_pair.lua:220
 msgid "Show QR code"
 msgstr "Показване на QR код"
 
-#: st_menu.lua:969 st_menu.lua:2350
+#: st_menu.lua:969 st_menu.lua:2346
 msgid ""
 "Show the address to open the Syncthing Web GUI from any browser on the same Wi-Fi.\n"
 "\n"
@@ -2912,7 +2851,7 @@ msgstr ""
 "\n"
 "Докоснете и задръжте конкретен ред по-долу за подробности или отворете съответното подменю."
 
-#: st_menu.lua:2623
+#: st_menu.lua:2619
 msgid "Start Syncthing"
 msgstr "Стартирай Syncthing"
 
@@ -2922,10 +2861,9 @@ msgstr "Първо стартирай Syncthing — сдвояването из�
 
 #: st_menu.lua:643
 msgid "Start Syncthing to see folder details and conflicts."
-msgstr ""
-"Стартирайте Syncthing, за да видите подробности за папките и конфликтите."
+msgstr "Стартирайте Syncthing, за да видите подробности за папките и конфликтите."
 
-#: st_health.lua:118
+#: st_health.lua:121
 msgid "Starting up…"
 msgstr "Стартиране…"
 
@@ -2933,16 +2871,16 @@ msgstr "Стартиране…"
 msgid "Status"
 msgstr "Статус"
 
-#: st_menu.lua:2221 st_menu.lua:2333 st_menu.lua:2588 st_menu.lua:2604
-#: st_menu.lua:2697
+#: st_menu.lua:2217 st_menu.lua:2329 st_menu.lua:2584 st_menu.lua:2600
+#: st_menu.lua:2693
 msgid "Status & conflicts"
 msgstr "Състояние и конфликти"
 
-#: st_menu.lua:2333 st_menu.lua:2695
+#: st_menu.lua:2329 st_menu.lua:2691
 msgid "Status & conflicts (%1)"
 msgstr "Състояние и конфликти (%1)"
 
-#: st_menu.lua:1006 st_menu.lua:2375
+#: st_menu.lua:1006 st_menu.lua:2371
 msgid ""
 "Step-by-step wizard: shows your device ID and QR code, then watches for incoming pairing requests.\n"
 "\n"
@@ -2960,19 +2898,15 @@ msgstr "Все още се наблюдава заявка за сдвояван
 msgid "Stop & continue"
 msgstr "Спри и продължи"
 
-#: st_menu.lua:2623
+#: st_menu.lua:2619
 msgid "Stop Syncthing"
 msgstr "Спри Syncthing"
 
 #: st_menu.lua:2098
-msgid ""
-"Stop Syncthing and start it again. Useful when Syncthing is unresponsive or "
-"after changing resource settings."
-msgstr ""
-"Спрете Syncthing и го стартирайте отново. Полезно, когато Syncthing не "
-"реагира или след промяна на настройките на ресурса."
+msgid "Stop Syncthing and start it again. Useful when Syncthing is unresponsive or after changing resource settings."
+msgstr "Спрете Syncthing и го стартирайте отново. Полезно, когато Syncthing не реагира или след промяна на настройките на ресурса."
 
-#: st_health.lua:107
+#: st_health.lua:110
 msgid "Stopped — tap to start"
 msgstr "Спряно — докоснете, за стартиране"
 
@@ -3024,25 +2958,15 @@ msgstr "Синхронизиране… (остава %1)"
 msgid "Syncing… (%1)"
 msgstr "Синхронизиране… (%1)"
 
-#: st_health.lua:131
+#: st_health.lua:134
 msgid "Syncing… %1 remaining"
 msgstr "Синхронизиране… Остават %1"
 
-#: st_health.lua:129
+#: st_health.lua:132
 msgid "Syncing… %1% (%2 remaining)"
 msgstr "Синхронизиране… %1% (остава %2)"
 
-#: st_update.lua:167
-msgid ""
-"Syncthing binary not found inside the archive.\n"
-"\n"
-"This is unexpected — please report this to the plugin author."
-msgstr ""
-"Изпълнимият Syncthing файл не е намерен в архива.\n"
-"\n"
-"Това е неочаквано — моля, съобщете за това на автора на плъгина."
-
-#: _meta.lua:10 st_menu.lua:2501 st_menu.lua:2748
+#: _meta.lua:9 st_menu.lua:2497 st_menu.lua:2744
 msgid "KOSyncthing+"
 msgstr "KOSyncthing+"
 
@@ -3054,7 +2978,7 @@ msgstr "Syncthing е спряно. Съветникът за сдвояване 
 msgid "Syncthing is already stopped."
 msgstr "Syncthing вече е спряно."
 
-#: st_update.lua:385
+#: st_update.lua:386
 msgid ""
 "Syncthing is already up to date.\n"
 "\n"
@@ -3078,7 +3002,7 @@ msgstr ""
 "\n"
 "Задаване на парола? Можете да я промените по всяко време от менюто."
 
-#: st_menu.lua:2568
+#: st_menu.lua:2564
 msgid "Syncthing is not installed yet."
 msgstr "Syncthing все още не е инсталиран."
 
@@ -3096,7 +3020,7 @@ msgstr ""
 "\n"
 "Това може да се случи, когато ядрото изчаква операцията на файловата система да приключи. Опитайте да рестартирате, ако проблемът продължава."
 
-#: st_health.lua:160
+#: st_health.lua:163
 msgid "Syncthing is not running"
 msgstr "Syncthing не работи"
 
@@ -3114,13 +3038,11 @@ msgstr "Дневник на Syncthing (само грешки)"
 
 #: st_process.lua:873
 msgid "Syncthing must be running to apply performance settings."
-msgstr ""
-"Syncthing трябва да работи, за да приложите настройките за производителност."
+msgstr "Syncthing трябва да работи, за да приложите настройките за производителност."
 
 #: st_process.lua:1006
 msgid "Syncthing must be running to reset performance settings."
-msgstr ""
-"Syncthing трябва да работи, за да върнете настройките за производителност."
+msgstr "Syncthing трябва да работи, за да върнете настройките за производителност."
 
 #: st_settings.lua:40
 msgid ""
@@ -3140,11 +3062,11 @@ msgstr "Syncthing стартира"
 msgid "Syncthing stopped."
 msgstr "Syncthing е спряно."
 
-#: st_update.lua:235
+#: st_update.lua:236
 msgid "Syncthing updated to v%1 and restarting…"
 msgstr "Syncthing е актуализиран до v%1 и се рестартира…"
 
-#: st_update.lua:236
+#: st_update.lua:237
 msgid ""
 "Syncthing v%1 installed!\n"
 "\n"
@@ -3162,11 +3084,11 @@ msgstr ""
 "Syncthing ще синхронизира файловете към този път на вашето устройство.\n"
 "Променете го, ако искате папката на друго място."
 
-#: main.lua:666
+#: main.lua:681
 msgid "Syncthing: Pause / resume all folders"
 msgstr "Syncthing: Поставяне на пауза / възобновяване на всички папки"
 
-#: main.lua:660
+#: main.lua:675
 msgid "Syncthing: Quick Sync"
 msgstr "Syncthing: Бърза синхронизация"
 
@@ -3182,7 +3104,7 @@ msgstr "Докоснете, за да изчистиш всички API греш
 msgid "Tap to restart Syncthing now."
 msgstr "Докоснете, за да рестартираш Syncthing сега."
 
-#: st_update.lua:152
+#: st_update.lua:163
 msgid ""
 "The downloaded archive is corrupt or extraction failed.\n"
 "\n"
@@ -3295,18 +3217,14 @@ msgstr ""
 "Първо се свържете с мрежа, след което опитайте отново."
 
 #: st_menu.lua:1411
-msgid ""
-"Tip: Set 'Action when Wi‑Fi is off' to 'turn on' in KOReader Network "
-"settings for fully automatic sync."
-msgstr ""
-"Съвет: Задайте „Действие, когато Wi‑Fi е изключен“ на „включено“ в мрежовите"
-" настройки на KOReader за напълно автоматично синхронизиране."
+msgid "Tip: Set 'Action when Wi‑Fi is off' to 'turn on' in KOReader Network settings for fully automatic sync."
+msgstr "Съвет: Задайте „Действие, когато Wi‑Fi е изключен“ на „включено“ в мрежовите настройки на KOReader за напълно автоматично синхронизиране."
 
-#: main.lua:653
+#: main.lua:668
 msgid "Toggle Syncthing"
 msgstr "Включи/изключи Syncthing"
 
-#: st_menu.lua:2508
+#: st_menu.lua:2504
 msgid ""
 "Turn Syncthing on or off.\n"
 "\n"
@@ -3334,15 +3252,15 @@ msgstr "Неизвестен"
 msgid "Up to date"
 msgstr "Актуално"
 
-#: st_health.lua:144
+#: st_health.lua:147
 msgid "Up to date · no devices online"
 msgstr "Актуално · няма устройства онлайн"
 
-#: st_update.lua:449
+#: st_update.lua:450
 msgid "Update"
 msgstr "Актуализация"
 
-#: st_update.lua:362
+#: st_update.lua:363
 msgid ""
 "Update check failed.\n"
 "\n"
@@ -3357,10 +3275,8 @@ msgid "Use ALL theirs"
 msgstr "Използвай ВСИЧКИ техни"
 
 #: st_menu.lua:1592
-msgid ""
-"Useful for diagnosing problems without scrolling through the entire log."
-msgstr ""
-"Полезно за диагностициране на проблеми без превъртане през целия дневник."
+msgid "Useful for diagnosing problems without scrolling through the entire log."
+msgstr "Полезно за диагностициране на проблеми без превъртане през целия дневник."
 
 #: st_settings.lua:61
 msgid "Username: %1"
@@ -3370,7 +3286,7 @@ msgstr "Потребителско име: %1"
 msgid "v1.2.2 — very old kernels < 2.6.32 (limited features)"
 msgstr "v1.2.2 — много стари ядра < 2.6.32 (ограничени функции)"
 
-#: legacy.lua:727
+#: legacy.lua:722
 msgid "v1.2.2 (very old kernels)"
 msgstr "v1.2.2 (много стари ядра)"
 
@@ -3394,7 +3310,7 @@ msgstr "Виж само грешките"
 msgid "View logs"
 msgstr "Преглед на логовете"
 
-#: st_health.lua:225
+#: st_health.lua:228
 msgid "Waiting for local API…"
 msgstr "Изчаква се локален API…"
 
@@ -3402,7 +3318,7 @@ msgstr "Изчаква се локален API…"
 msgid "Waiting…"
 msgstr "Изчакване…"
 
-#: st_menu.lua:972 st_menu.lua:2349
+#: st_menu.lua:972 st_menu.lua:2345
 msgid "Web GUI access"
 msgstr "Уеб интерфейс достъп"
 
@@ -3462,7 +3378,7 @@ msgstr "да"
 msgid "Yes, replace it"
 msgstr "Да, смени го"
 
-#: main.lua:339
+#: main.lua:353
 msgid ""
 "Your device has an older kernel.\n"
 "\n"
@@ -3476,38 +3392,20 @@ msgstr ""
 
 # --- AD-19: database relocation strings ---
 #: st_process.lua:665
-msgid ""
-"Syncthing's database is on internal storage for reliability on this device. "
-"The first scan may take a little longer — your files are not affected."
-msgstr ""
-"Базата данни на Syncthing е на вътрешната памет за надеждност на това "
-"устройство. Първоначалното сканиране може да отнеме малко повече време — "
-"файловете ви не са засегнати."
+msgid "Syncthing's database is on internal storage for reliability on this device. The first scan may take a little longer — your files are not affected."
+msgstr "Базата данни на Syncthing е на вътрешната памет за надеждност на това устройство. Първоначалното сканиране може да отнеме малко повече време — файловете ви не са засегнати."
 
 #: st_menu.lua:633 st_process.lua:677
-msgid ""
-"This device's storage can make Syncthing's database unreliable, and no "
-"alternative partition has enough free space. Syncing may be unstable. Free "
-"up space on internal storage (e.g. /var/local) and restart Syncthing."
-msgstr ""
-"Хранилището на това устройство може да направи базата данни на Syncthing "
-"ненадеждна, а никой алтернативен дял няма достатъчно свободно място. "
-"Syncthing може да е нестабилен. Освободете място на вътрешната памет (напр. "
-"/var/local) и рестартирайте Syncthing."
+msgid "This device's storage can make Syncthing's database unreliable, and no alternative partition has enough free space. Syncing may be unstable. Free up space on internal storage (e.g. /var/local) and restart Syncthing."
+msgstr "Хранилището на това устройство може да направи базата данни на Syncthing ненадеждна, а никой алтернативен дял няма достатъчно свободно място. Syncthing може да е нестабилен. Освободете място на вътрешната памет (напр. /var/local) и рестартирайте Syncthing."
 
 #: st_menu.lua:619
 msgid "Database: on internal storage"
 msgstr "База данни: на вътрешната памет"
 
 #: st_menu.lua:623
-msgid ""
-"This device uses a filesystem on which Syncthing's database can't run "
-"reliably, so it was placed on the device's internal storage instead. This is"
-" automatic and normal — your files are not affected."
-msgstr ""
-"Това устройство използва файлова система, на която базата данни на Syncthing"
-" не може да работи надеждно, затова тя беше поставена на вътрешната памет на"
-" устройството. Това е автоматично и нормално — файловете ви не са засегнати."
+msgid "This device uses a filesystem on which Syncthing's database can't run reliably, so it was placed on the device's internal storage instead. This is automatic and normal — your files are not affected."
+msgstr "Това устройство използва файлова система, на която базата данни на Syncthing не може да работи надеждно, затова тя беше поставена на вътрешната памет на устройството. Това е автоматично и нормално — файловете ви не са засегнати."
 
 #: st_menu.lua:630
 msgid "Database storage issue — tap and hold"
@@ -3554,22 +3452,18 @@ msgstr ""
 "Отворете го, за да започне синхронизацията."
 
 #: st_android.lua:401
-msgid ""
-"Open the Syncthing app, then Settings (or the Web GUI at 127.0.0.1:8384) and"
-" copy the API Key."
-msgstr ""
-"Отворете Syncthing приложението, после Настройки (или уеб интерфейс на "
-"127.0.0.1:8384) и копирайте API ключа."
+msgid "Open the Syncthing app, then Settings (or the Web GUI at 127.0.0.1:8384) and copy the API Key."
+msgstr "Отворете Syncthing приложението, после Настройки (или уеб интерфейс на 127.0.0.1:8384) и копирайте API ключа."
 
-#: st_menu.lua:2184
+#: st_menu.lua:2180
 msgid "Connect to the Syncthing app"
 msgstr "Свързване със Syncthing приложението"
 
-#: st_menu.lua:1660 st_menu.lua:2406
+#: st_menu.lua:1660 st_menu.lua:2402
 msgid "Copy diagnostic info"
 msgstr "Копирай диагностична информация"
 
-#: st_menu.lua:2358
+#: st_menu.lua:2354
 msgid ""
 "Open this address in a browser on the same Wi-Fi:\n"
 "\n"
@@ -3583,69 +3477,43 @@ msgstr ""
 "\n"
 "Или сканирайте QR кода с друго устройство."
 
-#: st_menu.lua:2234 st_menu.lua:2257
+#: st_menu.lua:2230 st_menu.lua:2253
 msgid "Rescan failed — is the Syncthing app running?"
 msgstr "Неуспешно сканиране — работи ли Syncthing приложението?"
 
-#: st_menu.lua:2234 st_menu.lua:2257
+#: st_menu.lua:2230 st_menu.lua:2253
 msgid "Rescan started."
 msgstr "Сканирането започна."
 
-#: st_menu.lua:2185
-msgid ""
-"This plugin works alongside a Syncthing app (e.g. Syncthing-Fork) running on"
-" this device. Install and start it, then tap here to enter its API key."
-msgstr ""
-"Този плъгин работи заедно със Syncthing приложение (напр. Syncthing-Fork) на"
-" това устройство. Инсталирайте и го стартирайте, после докоснете тук, за да "
-"въведете API ключа му."
+#: st_menu.lua:2181
+msgid "This plugin works alongside a Syncthing app (e.g. Syncthing-Fork) running on this device. Install and start it, then tap here to enter its API key."
+msgstr "Този плъгин работи заедно със Syncthing приложение (напр. Syncthing-Fork) на това устройство. Инсталирайте и го стартирайте, после докоснете тук, за да въведете API ключа му."
 
-#: st_menu.lua:2212
-msgid ""
-"Open the status view: folder sync state, sync conflicts, and any pending "
-"devices or folders."
-msgstr ""
-"Отваря изгледа за състояние: статус на синхронизация на папките, конфликти и"
-" чакащи устройства или папки."
+#: st_menu.lua:2208
+msgid "Open the status view: folder sync state, sync conflicts, and any pending devices or folders."
+msgstr "Отваря изгледа за състояние: статус на синхронизация на папките, конфликти и чакащи устройства или папки."
 
-#: st_menu.lua:2251
-msgid ""
-"Ask the Syncthing app to rescan every folder now, so recent file changes are"
-" detected and synced without waiting."
-msgstr ""
-"Кара Syncthing приложението да сканира всички папки веднага, така че "
-"скорошните промени се откриват и синхронизират без изчакване."
+#: st_menu.lua:2247
+msgid "Ask the Syncthing app to rescan every folder now, so recent file changes are detected and synced without waiting."
+msgstr "Кара Syncthing приложението да сканира всички папки веднага, така че скорошните промени се откриват и синхронизират без изчакване."
 
-#: st_menu.lua:2320
-msgid ""
-"Pause all folders to stop syncing temporarily (saves battery and data), or "
-"resume them again."
-msgstr ""
-"Паузира всички папки, за да спре синхронизацията временно (пести батерия и "
-"данни), или ги възобновява."
+#: st_menu.lua:2316
+msgid "Pause all folders to stop syncing temporarily (saves battery and data), or resume them again."
+msgstr "Паузира всички папки, за да спре синхронизацията временно (пести батерия и данни), или ги възобновява."
 
-#: st_menu.lua:2335
-msgid ""
-"View sync status and resolve sync conflicts — for example when the same book"
-" was annotated on two devices. Reading progress can be auto-merged."
-msgstr ""
-"Преглед на статуса и разрешаване на конфликти — например когато една книга е"
-" анотирана на две устройства. Напредъкът на четене може да се слее "
-"автоматично."
+#: st_menu.lua:2331
+msgid "View sync status and resolve sync conflicts — for example when the same book was annotated on two devices. Reading progress can be auto-merged."
+msgstr "Преглед на статуса и разрешаване на конфликти — например когато една книга е анотирана на две устройства. Напредъкът на четене може да се слее автоматично."
 
-#: st_menu.lua:2407
-msgid ""
-"Show plugin state, the connection scheme and port, and recent API errors, "
-"and copy them to the clipboard for a bug report."
-msgstr ""
-"Показва състоянието на плъгина, схемата и порта на връзката и скорошните API"
-" грешки, и ги копира в клипборда за доклад за грешка."
+#: st_menu.lua:2403
+msgid "Show plugin state, the connection scheme and port, and recent API errors, and copy them to the clipboard for a bug report."
+msgstr "Показва състоянието на плъгина, схемата и порта на връзката и скорошните API грешки, и ги копира в клипборда за доклад за грешка."
 
-#: st_health.lua:105
+#: st_health.lua:108
 msgid "Syncthing app not reachable — open it to sync"
 msgstr "Приложението Syncthing е недостъпно — отворете го"
 
-#: st_menu.lua:2483
+#: st_menu.lua:2479
 msgid "Reset connection"
 msgstr "Нулиране на връзката"
 
@@ -3653,15 +3521,9 @@ msgstr "Нулиране на връзката"
 msgid "Reset"
 msgstr "Нулиране"
 
-#: st_menu.lua:2484
-msgid ""
-"Forget the saved API key and reset the plugin's settings on this device, "
-"returning to the connect screen. The Syncthing app and its synced files are "
-"not affected."
-msgstr ""
-"Забравя запазения API ключ и нулира настройките на плъгина на това "
-"устройство и връща към свързването. Syncthing приложението и "
-"синхронизираните файлове не се засягат."
+#: st_menu.lua:2480
+msgid "Forget the saved API key and reset the plugin's settings on this device, returning to the connect screen. The Syncthing app and its synced files are not affected."
+msgstr "Забравя запазения API ключ и нулира настройките на плъгина на това устройство и връща към свързването. Syncthing приложението и синхронизираните файлове не се засягат."
 
 #: st_reset.lua:242
 msgid ""
@@ -3707,11 +3569,11 @@ msgstr "Повторното сканиране на „%1“ започна."
 msgid "Could not rescan \"%1\"."
 msgstr "Неуспешно повторно сканиране на „%1“."
 
-#: st_menu.lua:2248 st_menu.lua:2647
+#: st_menu.lua:2244 st_menu.lua:2643
 msgid "Fix errors"
 msgstr "Поправи грешките"
 
-#: st_menu.lua:2207 st_menu.lua:2556
+#: st_menu.lua:2203 st_menu.lua:2552
 msgid " — tap to fix"
 msgstr " — докоснете за поправяне"
 
@@ -3720,11 +3582,8 @@ msgid "Port (default 8384)"
 msgstr "Порт (по подразбиране 8384)"
 
 #: st_android.lua:409
-msgid ""
-"Change this only if you set a non-default Web GUI port in the Syncthing app."
-msgstr ""
-"Сменете това само ако сте задали нестандартен порт за уеб интерфейс в "
-"приложението Syncthing."
+msgid "Change this only if you set a non-default Web GUI port in the Syncthing app."
+msgstr "Сменете това само ако сте задали нестандартен порт за уеб интерфейс в приложението Syncthing."
 
 #: st_menu.lua:1154
 msgid ""
@@ -3746,7 +3605,7 @@ msgstr ""
 "\n"
 "Syncthing трябва да работи."
 
-#: legacy.lua:711
+#: legacy.lua:706
 msgid ""
 "Choose the Syncthing version for this device.\n"
 "\n"
@@ -3760,7 +3619,7 @@ msgstr ""
 "\n"
 "v1.2.2 — много стари ядра под 2.6.32 (напр. Kindle PW1). Всички функции остават достъпни; няколко по-нови настройки се пропускат автоматично."
 
-#: legacy.lua:793
+#: legacy.lua:788
 msgid "Choose version manually"
 msgstr "Изберете версия ръчно"
 
@@ -3786,11 +3645,11 @@ msgstr ""
 "\n"
 "Някои индексни файлове не можаха да бъдат премахнати. Вижте логовете за подробности."
 
-#: st_menu.lua:1939 st_menu.lua:2478
+#: st_menu.lua:1939 st_menu.lua:2474
 msgid "Diagnostic info (also copied to clipboard)"
 msgstr "Диагностична информация (също копирана в клипборда)"
 
-#: legacy.lua:886
+#: legacy.lua:881
 msgid ""
 "Download the legacy Syncthing binary (%1) for this device.\n"
 "\n"
@@ -3818,7 +3677,7 @@ msgstr ""
 "\n"
 "Вижте Поддръжка → Преглед на логовете за подробности или опитайте да изтеглите изпълнимия файл отново."
 
-#: legacy.lua:664 legacy.lua:909
+#: legacy.lua:659 legacy.lua:904
 msgid ""
 "Legacy Syncthing %1 is installed and ready.\n"
 "\n"
@@ -3828,7 +3687,7 @@ msgstr ""
 "\n"
 "Да го стартирам ли сега?"
 
-#: legacy.lua:754
+#: legacy.lua:749
 msgid ""
 "Legacy mode lets Syncthing run on devices with a very old Linux kernel.\n"
 "\n"
@@ -3846,7 +3705,7 @@ msgstr ""
 "\n"
 "Изпълнимият файл (~10–20 MB) ще бъде изтеглен — необходим е Wi-Fi."
 
-#: legacy.lua:766
+#: legacy.lua:761
 msgid ""
 "Legacy mode lets Syncthing run on devices with an older Linux kernel.\n"
 "\n"
@@ -3874,19 +3733,19 @@ msgstr ""
 "\n"
 "Отворете това, за да го настроите; правилната версия се разпознава автоматично. Устройства с по-ново ядро нямат нужда от това."
 
-#: legacy.lua:780
+#: legacy.lua:775
 msgid "Set up & download (%1)"
 msgstr "Настройка и изтегляне (%1)"
 
-#: legacy.lua:832
+#: legacy.lua:827
 msgid "Set up Legacy mode…"
 msgstr "Настройка на режима за стари устройства…"
 
-#: legacy.lua:666 legacy.lua:912
+#: legacy.lua:661 legacy.lua:907
 msgid "Start"
 msgstr "Стартирай"
 
-#: legacy.lua:410
+#: legacy.lua:405
 msgid ""
 "The downloaded binary could not be made executable.\n"
 "\n"
@@ -3907,14 +3766,10 @@ msgstr ""
 "Отворете Настройка → Syncthing за стари устройства и я изтеглете преди стартиране."
 
 #: st_menu.lua:1663
-msgid ""
-"Useful when reporting bugs. Shows a QR code you can scan with your phone to "
-"get the full diagnostic snapshot."
-msgstr ""
-"Полезно при докладване на грешки. Показва QR код, който можете да сканирате "
-"с телефона си, за да получите пълната диагностична снимка."
+msgid "Useful when reporting bugs. Shows a QR code you can scan with your phone to get the full diagnostic snapshot."
+msgstr "Полезно при докладване на грешки. Показва QR код, който можете да сканирате с телефона си, за да получите пълната диагностична снимка."
 
-#: legacy.lua:683
+#: legacy.lua:678
 msgid ""
 "v1.2.2 has an older, limited REST API.\n"
 "\n"
@@ -3936,15 +3791,15 @@ msgstr ""
 "\n"
 "Да продължа ли?"
 
-#: legacy.lua:720
+#: legacy.lua:715
 msgid "v1.27.12"
 msgstr "v1.27.12"
 
-#: st_menu.lua:1479 st_menu.lua:2279
+#: st_menu.lua:1479 st_menu.lua:2275
 msgid "Auto-merge conflicts after sync ✓"
 msgstr "Автоматично сливане след синхронизация ✓"
 
-#: st_menu.lua:1480 st_menu.lua:2280
+#: st_menu.lua:1480 st_menu.lua:2276
 msgid "Auto-merge conflicts after sync"
 msgstr "Автоматично сливане след синхронизация"
 
@@ -3972,13 +3827,13 @@ msgstr "Бърза синхронизация спряна — мрежата е
 msgid "Periodic sync: network disconnected."
 msgstr "Периодична синхронизация: мрежата е изключена."
 
-#: st_health.lua:113
+#: st_health.lua:116
 msgid "⚠ %1 file conflict needs attention"
 msgid_plural "⚠ %1 file conflicts need attention"
 msgstr[0] "⚠ %1 файлов конфликт изисква внимание"
 msgstr[1] "⚠ %1 файлови конфликта изискват внимание"
 
-#: st_health.lua:122
+#: st_health.lua:125
 msgid "⚠ Error in %1 folder"
 msgid_plural "⚠ Errors in %1 folders"
 msgstr[0] "⚠ Грешка в %1 папка"

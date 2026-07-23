@@ -657,4 +657,162 @@ describe("detectArch", function()
         assert.is_true(keys["syncthing_auto_merge_conflicts"],
             "syncthing_auto_merge_conflicts must be in ALL_SETTINGS_KEYS for factory reset")
     end)
+
+    it("ALL_SETTINGS_KEYS includes syncthing_legacy_hint_seen", function()
+        local U = freshUtilsArch()
+        local keys = {}
+        for _, k in ipairs(U.ALL_SETTINGS_KEYS) do keys[k] = true end
+        assert.is_true(keys["syncthing_legacy_hint_seen"],
+            "syncthing_legacy_hint_seen must be in ALL_SETTINGS_KEYS so factory reset "
+         .. "and plugin removal clear the one-time old-kernel notice")
+    end)
+end)
+
+-- ─────────────────────────────────────────────────────────────────────────────
+-- extractBinaryFromArchive
+--
+-- A Syncthing release tarball contains THREE entries named `syncthing`: the
+-- ELF executable at the archive root, plus helper scripts under
+-- etc/freebsd-rc/ and etc/firewall-ufw/.  The archive lists the scripts first.
+-- The previous implementation unpacked everything and then searched the
+-- unpacked tree for the name, taking the first hit — which is readdir order, so
+-- a script could be picked, installed and then rejected as "not a valid Linux
+-- binary".  These tests lock in selection by archive path.
+--
+-- ffi/archiver is a LuaJIT FFI module and cannot run under the plain-Lua test
+-- runner, so a fake Reader supplies the entry list.
+-- ─────────────────────────────────────────────────────────────────────────────
+
+describe("extractBinaryFromArchive", function()
+    -- Entry order mirrors a real archive: scripts first, executable last.
+    local function realArchiveEntries()
+        return {
+            { path = "syncthing-linux-arm-v1.27.12/etc/freebsd-rc/syncthing",   mode = "file", size = 1709 },
+            { path = "syncthing-linux-arm-v1.27.12/etc/firewall-ufw/syncthing", mode = "file", size = 175 },
+            { path = "syncthing-linux-arm-v1.27.12/README.txt",                 mode = "file", size = 2048 },
+            { path = "syncthing-linux-arm-v1.27.12/syncthing",                  mode = "file", size = 25355697 },
+        }
+    end
+
+    -- Installs a fake ffi/archiver and returns the call log.
+    local function withArchiver(opts, fn)
+        opts = opts or {}
+        local log = { extracted = {} }
+        package.loaded["ffi/archiver"] = nil
+        package.preload["ffi/archiver"] = function()
+            return {
+                Reader = {
+                    new = function(_)
+                        return {
+                            err = nil,
+                            open = function(_self, path)
+                                log.opened = path
+                                return opts.open ~= false
+                            end,
+                            iterate = function(_self)
+                                local list, i = opts.entries or realArchiveEntries(), 0
+                                return function()
+                                    i = i + 1
+                                    return list[i]
+                                end
+                            end,
+                            extractToPath = function(self, key, dest)
+                                log.extracted[#log.extracted + 1] = { key = key, dest = dest }
+                                if opts.extract == false then
+                                    self.err = "write failed"
+                                    return false
+                                end
+                                return true
+                            end,
+                            close = function(_self) log.closed = true end,
+                        }
+                    end,
+                },
+            }
+        end
+        local ok, err = fn(freshUtils(), log)
+        package.preload["ffi/archiver"] = nil
+        package.loaded["ffi/archiver"]  = nil
+        return ok, err
+    end
+
+    it("picks the root-level executable, not the etc/ helper scripts", function()
+        withArchiver(nil, function(U, log)
+            local ok, err = U.extractBinaryFromArchive("/tmp/st.tar.gz", "/tmp/out/syncthing")
+            assert.is_true(ok)
+            assert.is_nil(err)
+            assert.are.equal(1, #log.extracted)
+            assert.are.equal("syncthing-linux-arm-v1.27.12/syncthing", log.extracted[1].key)
+            assert.are.equal("/tmp/out/syncthing", log.extracted[1].dest)
+        end)
+    end)
+
+    it("extracts exactly one entry and closes the archive", function()
+        withArchiver(nil, function(U, log)
+            U.extractBinaryFromArchive("/tmp/st.tar.gz", "/tmp/out/syncthing")
+            assert.are.equal(1, #log.extracted)
+            assert.is_true(log.closed)
+            assert.are.equal("/tmp/st.tar.gz", log.opened)
+        end)
+    end)
+
+    it("falls back to the largest candidate when no root-level entry exists", function()
+        -- Hypothetical future layout: everything nested one level deeper.
+        local entries = {
+            { path = "st/etc/freebsd-rc/syncthing", mode = "file", size = 1709 },
+            { path = "st/bin/syncthing",            mode = "file", size = 25355697 },
+        }
+        withArchiver({ entries = entries }, function(U, log)
+            local ok = U.extractBinaryFromArchive("/tmp/st.tar.gz", "/tmp/out/syncthing")
+            assert.is_true(ok)
+            assert.are.equal("st/bin/syncthing", log.extracted[1].key)
+        end)
+    end)
+
+    it("ignores directory entries named syncthing", function()
+        local entries = {
+            { path = "st/syncthing",        mode = "directory", size = 0 },
+            { path = "st/etc/syncthing",    mode = "file",      size = 1709 },
+        }
+        withArchiver({ entries = entries }, function(U, log)
+            U.extractBinaryFromArchive("/tmp/st.tar.gz", "/tmp/out/syncthing")
+            assert.are.equal("st/etc/syncthing", log.extracted[1].key)
+        end)
+    end)
+
+    it("reports failure when the archive cannot be opened", function()
+        withArchiver({ open = false }, function(U, log)
+            local ok, err = U.extractBinaryFromArchive("/tmp/missing.tar.gz", "/tmp/out/syncthing")
+            assert.is_false(ok)
+            assert.are.equal("cannot open archive", err)
+            assert.are.equal(0, #log.extracted)
+        end)
+    end)
+
+    it("reports failure when the archive holds no syncthing entry", function()
+        local entries = { { path = "st/README.txt", mode = "file", size = 10 } }
+        withArchiver({ entries = entries }, function(U, log)
+            local ok, err = U.extractBinaryFromArchive("/tmp/st.tar.gz", "/tmp/out/syncthing")
+            assert.is_false(ok)
+            assert.are.equal("no syncthing entry in archive", err)
+            assert.are.equal(0, #log.extracted)
+        end)
+    end)
+
+    it("surfaces the archiver error when extraction fails", function()
+        withArchiver({ extract = false }, function(U)
+            local ok, err = U.extractBinaryFromArchive("/tmp/st.tar.gz", "/tmp/out/syncthing")
+            assert.is_false(ok)
+            assert.are.equal("write failed", err)
+        end)
+    end)
+
+    it("reports failure when ffi/archiver is unavailable", function()
+        package.preload["ffi/archiver"] = nil
+        package.loaded["ffi/archiver"]  = nil
+        local U = freshUtils()
+        local ok, err = U.extractBinaryFromArchive("/tmp/st.tar.gz", "/tmp/out/syncthing")
+        assert.is_false(ok)
+        assert.are.equal("archiver unavailable", err)
+    end)
 end)

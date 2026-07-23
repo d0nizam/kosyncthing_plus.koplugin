@@ -358,24 +358,33 @@ function Legacy.downloadBinary(self, version, callback)
             return
         end
 
-        -- Extract
-        local extract_ok = U.unpackArchive(tmp_tar, tmp_dir, true)
+        -- Extract just the executable.  The archive also ships helper scripts
+        -- named `syncthing` under etc/, so the entry is selected by its path
+        -- inside the archive rather than by searching the unpacked tree; see
+        -- U.extractBinaryFromArchive.
+        os.execute("mkdir -p '" .. U.shellEscape(tmp_dir) .. "'")
+        local binary_path = tmp_dir .. "/syncthing"
+        local extract_ok, extract_err = U.extractBinaryFromArchive(tmp_tar, binary_path)
         if not extract_ok then
-            local err_msg = _("Extraction failed. The archive may be corrupt. Please try again.")
-            fail_download(err_msg)
-            return
-        end
-
-        -- Find the binary inside the extracted tree
-        local fp = io.popen(
-            "find '" .. U.shellEscape(tmp_dir) .. "' -name syncthing -type f -maxdepth 3 2>/dev/null")
-        local binary_path = fp and fp:read("*l")
-        if fp then fp:close() end
-
-        if not binary_path or binary_path == "" then
-            local err_msg = _("Binary not found inside the downloaded archive. Please try again.")
-            fail_download(err_msg)
-            return
+            -- Fall back to system tar if ffi/archiver is missing or fails.  This
+            -- matters most here: legacy mode runs on the oldest devices, which
+            -- are also the ones most likely to be on an old KOReader build.
+            -- --strip-components=1 lands the executable at <dir>/syncthing, a
+            -- fixed path, so there is still nothing to search for.  No member
+            -- pattern: GNU tar needs --wildcards for one and busybox tar has no
+            -- --wildcards at all.
+            os.execute("rm -rf '" .. U.shellEscape(tmp_dir) .. "'")
+            os.execute("mkdir -p '" .. U.shellEscape(tmp_dir) .. "'")
+            local tar_ok = U.execOk(os.execute(
+                "tar -xzf '" .. U.shellEscape(tmp_tar) .. "' -C '"
+                .. U.shellEscape(tmp_dir) .. "' --strip-components=1"))
+            os.execute("sync")
+            if not tar_ok or not U.isELF(binary_path) then
+                local err_msg = _("Extraction failed. The archive may be corrupt. Please try again.")
+                    .. (extract_err and ("\n\nDetails: " .. tostring(extract_err)) or "")
+                fail_download(err_msg)
+                return
+            end
         end
 
         if not U.isELF(binary_path) then

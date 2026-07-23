@@ -323,6 +323,11 @@ local ALL_SETTINGS_KEYS = {
     "syncthing_use_legacy",
     "syncthing_legacy_version",
     "syncthing_legacy_installed_version",
+    -- Written by main.lua: set once the old-kernel notice has actually been
+    -- shown, so it does not reappear on every plugin instantiation.  Clearing
+    -- it on factory reset is intentional — a fresh install should get the
+    -- notice once again.
+    "syncthing_legacy_hint_seen",
     -- Android remote-mode keys (written by st_android): the API key, port and
     -- the discovered scheme (http/https) used to reach the Syncthing app.
     "syncthing_android_apikey",
@@ -842,6 +847,66 @@ return {
         return G_reader_settings:isTrue("syncthing_use_legacy")
             and plugin_path .. "syncthing-legacy"
             or  plugin_path .. "syncthing"
+    end,
+
+    -- Extract just the Syncthing executable from a release tarball, straight to
+    -- `dest`.  Returns true, or false plus a reason.
+    --
+    -- The selection is by archive path on purpose.  A release archive contains
+    -- THREE entries named `syncthing`: the ELF executable at the archive root,
+    -- plus helper scripts under etc/freebsd-rc/ and etc/firewall-ufw/.  Any
+    -- approach that unpacks the whole tree and then searches the filesystem for
+    -- the name has to break the tie by directory order, which is filesystem
+    -- dependent, or by depth, which depends on whether the extractor stripped
+    -- the archive's top-level directory.  Both produced installs of a shell
+    -- script that was then rejected as "not a valid Linux binary".  Matching the
+    -- entry inside the archive is unambiguous: the executable is the only
+    -- `syncthing` entry with exactly one path component ahead of it, and that
+    -- holds regardless of the order entries appear in (v1.2.2 lists the
+    -- executable first, v1.27.12 and v2.x list it last).
+    --
+    -- `entry.size` is the fallback if a future archive ever changes that shape:
+    -- the executable is ~25 MB, the helper scripts under 2 KB.
+    --
+    -- The caller must ensure the parent directory of `dest` exists.
+    extractBinaryFromArchive = function(archive, dest)
+        local ok_mod, Archiver = pcall(require, "ffi/archiver")
+        if not ok_mod or type(Archiver) ~= "table" or not Archiver.Reader then
+            return false, "archiver unavailable"
+        end
+        local arc = Archiver.Reader:new()
+        if not arc:open(archive) then
+            arc:close()
+            return false, "cannot open archive"
+        end
+
+        local exact, biggest, biggest_size
+        for entry in arc:iterate() do
+            if entry.mode == "file" and entry.path:match("/syncthing$") then
+                if entry.path:match("^[^/]+/syncthing$") then
+                    exact = entry.path
+                    break
+                end
+                local size = tonumber(entry.size) or 0
+                if not biggest_size or size > biggest_size then
+                    biggest, biggest_size = entry.path, size
+                end
+            end
+        end
+
+        local key = exact or biggest
+        if not key then
+            arc:close()
+            return false, "no syncthing entry in archive"
+        end
+
+        local ok = arc:extractToPath(key, dest)
+        local err = arc.err
+        arc:close()
+        if not ok then
+            return false, tostring(err or "extraction failed")
+        end
+        return true
     end,
 
     -- Single source of truth for the config directory (see the named local
