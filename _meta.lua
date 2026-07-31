@@ -8,5 +8,5 @@ local _ = require("syncthing_i18n").gettext
 return {
     fullname    = _("KOSyncthing+"),
     description = _([[Continuously sync files with other devices in a peer-to-peer manner.]]),
-    version     = "v1.2.1",
+    version     = "v1.2.2",
 }
