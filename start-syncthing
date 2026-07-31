@@ -323,7 +323,7 @@ i=0
 while [ "$i" -lt 10 ]; do
     kill -0 "$PID" 2>/dev/null && break
     sleep 1
-    i=$((i + 1))
+    i=$(expr "$i" + 1)
 done
 
 if ! kill -0 "$PID" 2>/dev/null; then
