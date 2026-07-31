@@ -1,5 +1,11 @@
 # Changelog
 
+## [v1.2.2] — 2026-07-31
+
+### Fixed
+- **Fixed Syncthing failing to start on some PocketBook devices.** Thanks to
+  @Philantrop for the fix (#8).
+
 ## [v1.2.1] — 2026-07-23
 
 ### Fixed
