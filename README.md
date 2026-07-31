@@ -4,7 +4,7 @@
   <img src="assets/kosyncthing-plus-logo.svg" alt="KOSyncthing+" width="440">
 </p>
 
-[![Release](https://img.shields.io/badge/release-v1.2.1-blue)](https://github.com/d0nizam/kosyncthing_plus.koplugin/releases)
+[![Release](https://img.shields.io/badge/release-v1.2.2-blue)](https://github.com/d0nizam/kosyncthing_plus.koplugin/releases)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-blue)](LICENSE)
 ![Platform](https://img.shields.io/badge/platform-Kindle%20%7C%20Kobo%20%7C%20Android-lightgrey)
 ![Tests](https://img.shields.io/badge/tests-516%20passing-brightgreen)
