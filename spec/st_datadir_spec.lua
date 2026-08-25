@@ -49,16 +49,6 @@ describe("resolveDataDir (AD-19)", function()
         assert.are.equal("clean", reason)
     end)
 
-    it("never relocates in legacy (LevelDB) mode", function()
-        local dir, reason = U.resolveDataDir(CFG, {
-            legacy = true,
-            probe = function() return true end,            -- even if broken
-            candidates = { "/var/local/kosyncthing_plus" },
-        })
-        assert.are.equal(CFG, dir)
-        assert.are.equal("legacy", reason)
-    end)
-
     it("relocates to a roomy candidate when the config dir is broken", function()
         local parent = mktempdir()
         local cand   = parent .. "/kosyncthing_plus"
@@ -152,23 +142,20 @@ describe("getDataDir cache + invalidateDataDirCache (AD-19)", function()
     local U
     before_each(function() Mock.reset(); U = realUtils() end)
 
-    it("caches within a session and re-resolves only after invalidation", function()
-        -- Standard mode; the config dir does not exist on disk, so the real
-        -- probe cannot create its test file and correctly reports 'not broken'.
-        G_reader_settings:delSetting("syncthing_use_legacy")
+    it("ignores an obsolete mode setting left by an older plugin version", function()
+        -- The config dir does not exist on disk, so the real probe cannot
+        -- create its test file and correctly reports 'not broken'.
         local d1 = U.getDataDir()
 
-        -- Flip to legacy WITHOUT invalidating: the session cache must still
-        -- return the standard-mode directory (this staleness is exactly what
-        -- the legacy toggle must clear — see legacy.lua enable/disable).
+        -- A stale setting must not switch paths, either before or after the
+        -- session cache is invalidated.
         G_reader_settings:saveSetting("syncthing_use_legacy", true)
         local d2 = U.getDataDir()
         assert.are.equal(d1, d2)
 
-        -- After invalidation the legacy config directory is resolved instead.
         U.invalidateDataDirCache()
         local d3 = U.getDataDir()
-        assert.is_truthy(d3:find("syncthing%-legacy", 1))
-        assert.are_not.equal(d1, d3)
+        assert.is_nil(d3:find("syncthing%-legacy", 1))
+        assert.are.equal(d1, d3)
     end)
 end)

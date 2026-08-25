@@ -1,4 +1,4 @@
--- st_process.lua - Binary lifecycle: start/stop/isRunning, performance and network settings, first‑run dialog
+-- st_process.lua - Binary lifecycle: start/stop/isRunning, performance and network settings, first-run dialog
 local DataStorage     = require("datastorage")
 local Device          = require("device")
 local UIManager       = require("ui/uimanager")
@@ -40,8 +40,8 @@ local _binary_arch_cache   = nil
 local function kindlePortGuard(port)
     if Device:isKindle() then
         U.kindleOpenPort(port)
-        U.kindleOpenPort("22000")      -- sync protocol (TCP) — required for pairing and data transfer
-        U.kindleOpenPortUDP("21027")   -- local discovery (UDP) — speeds up initial peer detection
+        U.kindleOpenPort("22000")      -- sync protocol (TCP) - required for pairing and data transfer
+        U.kindleOpenPortUDP("21027")   -- local discovery (UDP) - speeds up initial peer detection
     end
     local released = false
     return function()
@@ -88,7 +88,7 @@ local function binaryExists(self)
         return false
     end
 
-    -- It's a genuine ELF binary – cache and return true.
+    -- It's a genuine ELF binary - cache and return true.
     _binary_exists_cache = true
     return true
 end
@@ -213,12 +213,12 @@ end
 -- process that happened to recycle the PID we wrote earlier.
 --
 -- Three layers of detection, ordered by reliability and portability:
---   1. /proc/<pid>/comm — present on every modern Linux kernel
+--   1. /proc/<pid>/comm - present on every modern Linux kernel
 --      including those on Kindle and Kobo; this is the primary path.
---   2. /proc/<pid>/cmdline — fallback for kernels with /proc but where
+--   2. /proc/<pid>/cmdline - fallback for kernels with /proc but where
 --      /comm is unreadable for some reason; reads the actual command
 --      line that was used to exec the process.
---   3. `ps -p PID -o comm=` — last-resort fallback for systems where
+--   3. `ps -p PID -o comm=` - last-resort fallback for systems where
 --      /proc is mounted differently.  Some BusyBox builds don't
 --      support `-p` + `-o comm=` together (different argument
 --      parsers), so we also accept a generic `ps` listing.
@@ -309,7 +309,7 @@ local function start(self, callback)
 
     -- Re-entrancy guard.  KOReader is single-threaded LuaJIT, so the
     -- read-then-write on `self._starting` is atomic with respect to
-    -- itself — two `start` calls from rapid taps cannot race here.  We
+    -- itself - two `start` calls from rapid taps cannot race here.  We
     -- still keep the flag because callbacks fired during async work
     -- (UIManager:scheduleIn, tcp:receive, etc.) can re-enter the
     -- coroutine boundary and would otherwise launch a second daemon.
@@ -350,32 +350,6 @@ local function start(self, callback)
         return
     end
 
-    -- Legacy version guard.  Both legacy versions install to the single file
-    -- "syncthing-legacy", so binaryExists() cannot tell v1.2.2 from v1.27.12.
-    -- If the user switched the selected version but has not yet downloaded it,
-    -- the file on disk is the OTHER version — launching it would run under the
-    -- wrong CLI dialect and mismatch the API shim decision (AD-14).  Refuse
-    -- and point the user at the download action.
-    if U.isLegacy() then
-        local selected  = G_reader_settings:readSetting("syncthing_legacy_version") or "v1.27.12"
-        local installed = G_reader_settings:readSetting("syncthing_legacy_installed_version")
-        if installed ~= selected then
-            if not silent_start then
-                UIManager:show(InfoMessage:new{
-                    icon = "notice-warning",
-                    text = T(_(
-                        "The selected legacy version (%1) has not been downloaded yet.\n\n" ..
-                        "Open Setup → Legacy Syncthing and download it before starting."),
-                        selected),
-                })
-            end
-            UIManager:allowStandby()
-            self._starting = false
-            if callback then callback() end
-            return
-        end
-    end
-
     local home = safeHomeDir(self)
     if not home then
         UIManager:show(InfoMessage:new{
@@ -405,8 +379,7 @@ local function start(self, callback)
 
     -- Inject GUI credentials only if config.xml doesn't already have them.
     if self.gui_password then
-        -- Compute the active config path at call time via U.getConfigDir()
-        -- so the correct directory is used in both standard and legacy mode.
+        -- Compute the config path through the shared helper.
         local config_xml_path = U.getConfigDir() .. "/config.xml"
         local need_update = true
         if util.pathExists(config_xml_path) then
@@ -491,10 +464,7 @@ local function start(self, callback)
         end
     end
 
-    -- Create the active config directory if missing.  In standard mode this
-    -- is .../settings/syncthing; in legacy mode .../settings/syncthing-legacy.
-    -- U.getConfigDir() resolves this at call time so the correct directory
-    -- is always created regardless of which mode is active.
+    -- Create the standard config directory if missing.
     if not util.makePath(U.getConfigDir()) then
         UIManager:show(InfoMessage:new{
             icon = "notice-warning",
@@ -506,16 +476,6 @@ local function start(self, callback)
         return
     end
 
-    -- Pass the active binary name, config directory name and selected legacy
-    -- version as arguments 6, 7 and 8 to the unified start-syncthing shell
-    -- script.  The script uses 6 and 7 to locate the binary and config
-    -- directory; argument 8 lets it pick the correct command-line dialect
-    -- (v1.2.2 predates the `serve`/`generate` subcommands — AD-11).
-    local binary_name    = U.isLegacy() and "syncthing-legacy" or "syncthing"
-    local config_dirname = U.isLegacy() and "syncthing-legacy" or "syncthing"
-    local legacy_version = U.isLegacy()
-        and (G_reader_settings:readSetting("syncthing_legacy_version") or "v1.27.12")
-        or  ""
     -- AD-19: resolve where the SQLite database lives.  On an affected Kindle
     -- this relocates it off the hard_remove FUSE mount to a persistent ext
     -- partition; elsewhere it equals the config dir.  The reason is stored for
@@ -523,16 +483,13 @@ local function start(self, callback)
     local data_dir, data_reason = U.getDataDir()
     self._data_dir_reason = data_reason
     local cmd = string.format(
-        "sh '%s' '%s' '%s' '%s' '%s' '%s' '%s' '%s' '%s' '%s'",
+        "sh '%s' '%s' '%s' '%s' '%s' '%s' '%s'",
         U.shellEscape(U.plugin_path .. "start-syncthing"),
         U.shellEscape(home),
         U.shellEscape(self.active_port),
         U.shellEscape(path),
         U.shellEscape(self.resource_profile),
         U.shellEscape(self.network_access),
-        U.shellEscape(binary_name),
-        U.shellEscape(config_dirname),
-        U.shellEscape(legacy_version),
         U.shellEscape(data_dir))
 
     if not U.execOk(os.execute(cmd)) then
@@ -580,7 +537,7 @@ local function start(self, callback)
         if util.pathExists(pid_path) then
             local pid = getPid(self)
             if pid and U.execOk(os.execute(string.format("kill -0 %d 2>/dev/null", pid))) and isProcessSyncthing(pid) then
-                standby_held = false   -- allowStandby() ще бъде извикано по-долу
+                standby_held = false   -- allowStandby() is called below
                 self:_cacheInvalidate()
                 -- Apply network settings via API (slightly later so the
                 -- performance PUT has settled first).
@@ -654,7 +611,7 @@ local function start(self, callback)
                 -- it never stacks with the first-run/password dialogs; it is
                 -- scheduled a few seconds out so it follows the start UI and the
                 -- deferred setup above.  fallback_warn needs user action, so it
-                -- is a modal — but deferred until onboarding (password) is done
+                -- is a modal - but deferred until onboarding (password) is done
                 -- and skipped on silent/background starts.
                 if not silent_start then
                     local dreason = self._data_dir_reason
@@ -702,21 +659,9 @@ local function start(self, callback)
             UIManager:scheduleIn(0.5, check_pid)
         else
             _cleanupStartResources("timeout")
-            -- Point the user at the remedy that matches what we know.  An old
-            -- kernel needs Legacy mode; otherwise the likely cause is a wrong
-            -- or corrupt binary, so steer to re-installing it rather than
-            -- presuming a kernel that may be perfectly modern.
-            local _lok, _lmod = pcall(require, "legacy")
-            local _kstate = (_lok and _lmod and _lmod.kernelState()) or "unknown"
-            local remedy
-            if _kstate == "old" then
-                remedy = _("Your device's kernel is too old for the current Syncthing — "
-                        .. "set up Legacy mode from Setup → Legacy Syncthing.")
-            else
-                remedy = _("Re-install it from Maintenance → Check for updates, or download the "
-                        .. "correct binary for your device from "
-                        .. "github.com/syncthing/syncthing/releases and place it in the plugin folder.")
-            end
+            local remedy = _("Re-install it from Maintenance → Check for updates, or download the "
+                    .. "correct binary for your device from "
+                    .. "github.com/syncthing/syncthing/releases and place it in the plugin folder.")
             UIManager:show(InfoMessage:new{
                 icon = "notice-warning",
                 text = T(_("Syncthing is taking too long to start (>12 seconds).\n\n"
@@ -774,7 +719,7 @@ local function stop(self, callback, is_suspend, silent)
     if is_suspend then
         -- INTENTIONAL synchronous sleep.  This branch runs from
         -- onSuspend, which must complete BEFORE the OS suspends the
-        -- device — any UIManager:scheduleIn callback we schedule here
+        -- device - any UIManager:scheduleIn callback we schedule here
         -- would not fire until after resume, by which point the kernel
         -- has already paused the daemon's I/O.  We accept blocking the
         -- UI thread for ~1s to give Syncthing a chance to flush its
@@ -859,7 +804,7 @@ local function stop(self, callback, is_suspend, silent)
 end
 
 -- Apply folder/device-level performance tweaks via Syncthing REST API.
--- This is NOT called automatically – the user must explicitly request it
+-- This is NOT called automatically - the user must explicitly request it
 -- from the menu.  It modifies config.xml through the API, so it will
 -- persist across restarts.
 --
@@ -879,7 +824,7 @@ local function applyPerformanceSettings(self)
         local any_changed = false
         local any_failed  = false
 
-        -- ── Folders ──────────────────────────────────────────────────────
+        -- Folders
         local folders = self:getFolders()
         if not folders then
             UIManager:show(InfoMessage:new{
@@ -907,34 +852,19 @@ local function applyPerformanceSettings(self)
 			end
 
 			-- FAT-specific settings (prevent spurious conflicts and slow scans).
-			-- is_v122 guards fields that did not exist in Syncthing v1.2.2 (2019).
-			-- Sending them to that binary is harmless (silently ignored via Go JSON
-			-- unmarshal), but modTimeWindowS would always look "changed" because
-			-- the field is absent from GET responses, causing a needless PATCH on
-			-- every applyPerformanceSettings call.
-			local is_v122 = U.isLegacy()
-			    and G_reader_settings:readSetting("syncthing_legacy_version") == "v1.2.2"
 			if fs_type and (fs_type == "vfat" or fs_type == "msdos" or fs_type:match("^fuse%.")) then
-				-- modTimeWindowS: added v1.11.0 (2020). v1.2.2 had built-in FAT
-				-- 2-second tolerance before this field was introduced.
-				if not is_v122 then
-					if (folder.modTimeWindowS or 0) ~= 2 then
-						folder.modTimeWindowS = 2
-						changed = true
-					end
+				if (folder.modTimeWindowS or 0) ~= 2 then
+					folder.modTimeWindowS = 2
+					changed = true
 				end
 				if (folder.ignorePerms or false) ~= true then
 					folder.ignorePerms = true
 					changed = true
 				end
-				-- syncOwnership/sendOwnership/syncXattrs/sendXattrs: added v1.9.0 (2021).
-				-- These features don't exist in v1.2.2 so disabling them is a no-op.
-				if not is_v122 then
-					if (folder.syncOwnership or false) ~= false then folder.syncOwnership = false; changed = true end
-					if (folder.sendOwnership or false) ~= false then folder.sendOwnership = false; changed = true end
-					if (folder.syncXattrs or false)    ~= false then folder.syncXattrs    = false; changed = true end
-					if (folder.sendXattrs or false)    ~= false then folder.sendXattrs    = false; changed = true end
-				end
+				if (folder.syncOwnership or false) ~= false then folder.syncOwnership = false; changed = true end
+				if (folder.sendOwnership or false) ~= false then folder.sendOwnership = false; changed = true end
+				if (folder.syncXattrs or false)    ~= false then folder.syncXattrs    = false; changed = true end
+				if (folder.sendXattrs or false)    ~= false then folder.sendXattrs    = false; changed = true end
 			end
 
 			if changed then
@@ -956,14 +886,9 @@ local function applyPerformanceSettings(self)
 				if ok then any_changed = true else any_failed = true end
 			end
 		end
-        -- ── Devices ───────────────────────────────────────────────────────
-        -- numConnections per-device was added in Syncthing v1.20.0 (2023).
-        -- On v1.2.2 it is silently ignored, causing every call to detect a
-        -- "change" (nil→0 ≠ desired) and send a needless patchDevice.  Skip.
-        local is_v122_dev = U.isLegacy()
-            and G_reader_settings:readSetting("syncthing_legacy_version") == "v1.2.2"
+        -- Devices
         local devices = self:getDevices()
-        if devices and not is_v122_dev then
+        if devices then
             local desired = (self.resource_profile == "low") and 1 or 2
             for _, device in ipairs(devices) do
                 if (device.numConnections or 0) ~= desired then
@@ -977,7 +902,7 @@ local function applyPerformanceSettings(self)
         end
 
 
-        -- ── Result ────────────────────────────────────────────────────────
+        -- Result
         if any_failed then
             UIManager:show(InfoMessage:new{
                 icon = "notice-warning",
@@ -1012,7 +937,7 @@ local function resetPerformanceSettings(self)
         local any_changed = false
         local any_failed  = false
 
-        -- ── Folders ──────────────────────────────────────────────────
+        -- Folders
         local folders = self:getFolders()
         if not folders then
             UIManager:show(InfoMessage:new{
@@ -1056,7 +981,7 @@ local function resetPerformanceSettings(self)
 			end
 		end
 
-        -- ── Devices ──────────────────────────────────────────────────
+        -- Devices
         local devices = self:getDevices()
         if devices then
             for _, device in ipairs(devices) do
@@ -1070,7 +995,7 @@ local function resetPerformanceSettings(self)
             end
         end
 
-        -- ── Result ────────────────────────────────────────────────────
+        -- Result
         if any_failed then
             UIManager:show(InfoMessage:new{
                 icon = "notice-warning",
@@ -1091,13 +1016,13 @@ local function resetPerformanceSettings(self)
 end
 
 -- Apply network access settings via the Syncthing REST API.
--- These are config.xml <options> fields — they cannot be passed as CLI flags
+-- These are config.xml <options> fields - they cannot be passed as CLI flags
 -- to `syncthing serve`. The only CLI-level knob is --no-upgrade (handled by
 -- start-syncthing). Everything else lives here.
 --
--- lan    → disable all external connectivity; suitable for private networks
+-- lan    -> disable all external connectivity; suitable for private networks
 --          and devices with no internet access.
--- global → enable global discovery, relays, NAT traversal and automatic
+-- global -> enable global discovery, relays, NAT traversal and automatic
 --          upgrades; needed for syncing across the internet.
 local function applyNetworkSettings(self)
     if not self:isRunning() then return end
@@ -1139,21 +1064,12 @@ local function applyNetworkSettings(self)
         end
 
         -- Resource global options.
-        -- maxConcurrentIncomingRequestKiB and maxFolderConcurrency were both
-        -- introduced in Syncthing v1.4.0 (March 2020).  v1.2.2 silently ignores
-        -- them, but Go runtime-level memory protection via GOMEMLIMIT still
-        -- applies (set by start-syncthing).  We skip the API call on v1.2.2
-        -- to avoid "always changed" false-positive patches every startup.
-        local is_v122_net = U.isLegacy()
-            and G_reader_settings:readSetting("syncthing_legacy_version") == "v1.2.2"
-        if not is_v122_net then
-            if self.resource_profile == "low" then
-                set("maxConcurrentIncomingRequestKiB", 32768)
-                set("maxFolderConcurrency", 1)
-            else
-                set("maxConcurrentIncomingRequestKiB", 262144)
-                set("maxFolderConcurrency", 0)
-            end
+        if self.resource_profile == "low" then
+            set("maxConcurrentIncomingRequestKiB", 32768)
+            set("maxFolderConcurrency", 1)
+        else
+            set("maxConcurrentIncomingRequestKiB", 262144)
+            set("maxFolderConcurrency", 0)
         end
 
         if not next(patch) then
@@ -1234,7 +1150,7 @@ local function deletePluginSettings(self)
     -- settings/, e.g. /var/local, and would otherwise be orphaned).
     local relocated_data = G_reader_settings:readSetting("syncthing_data_dir")
 
-    -- Single source of truth in U.ALL_SETTINGS_KEYS — keep this and
+    -- Single source of truth in U.ALL_SETTINGS_KEYS - keep this and
     -- st_reset._wipe in sync by editing the list there, not here.
     for _, key in ipairs(U.ALL_SETTINGS_KEYS) do
         G_reader_settings:delSetting(key)
@@ -1254,30 +1170,29 @@ local function deletePluginSettings(self)
         end
     end
 
-    -- Legacy config directory, if it was ever created.  pcall guards against
-    -- read-only-filesystem errors on some Kindle models.  Both the pcall
-    -- result AND the FS.purge return value are inspected — discarding either
-    -- (the previous behaviour) could report a clean delete while legacy state
-    -- silently survived (AD-18).
-    local legacy_dir = path .. "/settings/syncthing-legacy"
-    if util.pathExists(legacy_dir) then
+    -- Remove the obsolete second config directory left by older plugin
+    -- releases.  pcall guards against read-only-filesystem errors on some
+    -- Kindle models.  Both the pcall result and FS.purge return value are
+    -- inspected so cleanup failures cannot be reported as success (AD-18).
+    local obsolete_dir = path .. "/settings/syncthing-legacy"
+    if util.pathExists(obsolete_dir) then
         local pcall_ok, purge_ok, purge_err = pcall(function()
-            return FS.purge(legacy_dir)
+            return FS.purge(obsolete_dir)
         end)
         if not pcall_ok then
             all_ok = false
-            logger.warn("[Syncthing] deletePluginSettings: legacy purge raised an error: "
+            logger.warn("[Syncthing] deletePluginSettings: obsolete-dir purge raised an error: "
                         .. tostring(purge_ok))  -- purge_ok holds the error message here
         elseif not purge_ok then
             all_ok = false
-            logger.warn("[Syncthing] deletePluginSettings: legacy purge failed: "
+            logger.warn("[Syncthing] deletePluginSettings: obsolete-dir purge failed: "
                         .. tostring(purge_err))
         end
     end
 
     -- AD-19: purge the relocated database directory if it lives outside
     -- settings/ (e.g. /var/local/kosyncthing_plus).  Guarded by pcall against
-    -- read-only-filesystem errors, like the legacy purge above.
+    -- read-only-filesystem errors, like the obsolete-directory purge above.
     if relocated_data and relocated_data ~= ""
             and not relocated_data:find("/settings/syncthing", 1, true) then
         local pcall_ok, purge_ok, purge_err = pcall(function()
@@ -1298,7 +1213,7 @@ local function deletePluginSettings(self)
     if all_ok then
         logger.info("[Syncthing] deletePluginSettings: settings keys and directories removed.")
     else
-        logger.warn("[Syncthing] deletePluginSettings: completed with errors — "
+        logger.warn("[Syncthing] deletePluginSettings: completed with errors - "
                     .. "some settings or directories may remain. See warnings above.")
     end
     return all_ok

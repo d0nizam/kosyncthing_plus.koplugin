@@ -37,12 +37,9 @@ local function _wipe(self)
     -- the config directories.
     local relocated_data = G_reader_settings:readSetting("syncthing_data_dir")
 
-    -- Purge both the standard and legacy config directories.
-    -- deletePluginSettings() (st_process.lua, fixed in AD-18) already does
-    -- this correctly; _wipe() previously only purged "settings/syncthing",
-    -- leaving "settings/syncthing-legacy" intact (BUG-25).  After a reset,
-    -- re-enabling legacy mode would restart with the OLD device ID and
-    -- config instead of a clean first-run state.
+    -- Purge the standard directory and the obsolete directory that may remain
+    -- after upgrading from a release that supported a second Syncthing binary.
+    -- deletePluginSettings() applies the same migration cleanup (AD-18/BUG-25).
     local any_failed = false
     for _, dirname in ipairs({ "syncthing", "syncthing-legacy" }) do
         local dir = base .. "/" .. dirname

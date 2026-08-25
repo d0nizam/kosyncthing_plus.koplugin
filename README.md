@@ -4,10 +4,10 @@
   <img src="assets/kosyncthing-plus-logo.svg" alt="KOSyncthing+" width="440">
 </p>
 
-[![Release](https://img.shields.io/badge/release-v1.2.2-blue)](https://github.com/d0nizam/kosyncthing_plus.koplugin/releases)
+[![Release](https://img.shields.io/badge/release-v1.2.3-blue)](https://github.com/d0nizam/kosyncthing_plus.koplugin/releases)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-blue)](LICENSE)
 ![Platform](https://img.shields.io/badge/platform-Kindle%20%7C%20Kobo%20%7C%20Android-lightgrey)
-![Tests](https://img.shields.io/badge/tests-516%20passing-brightgreen)
+![Tests](https://img.shields.io/badge/tests-440%20passing-brightgreen)
 [![Stars on GitHub](https://img.shields.io/badge/Stars_on_GitHub-181717?logo=github&logoColor=white)](https://github.com/d0nizam/kosyncthing_plus.koplugin/stargazers)
 
 **Peer-to-peer file synchronisation integrated into KOReader.**
@@ -56,7 +56,7 @@ KOSyncthing+ stands on both of their shoulders. It takes those foundations and p
 ## Features
 
 <details>
-<summary><b>Quick Sync, folder & device management, pairing wizard, smart header, performance tuning, legacy support, binary management, maintenance, notifications …</b> – click to expand</summary>
+<summary><b>Quick Sync, folder & device management, pairing wizard, smart header, performance tuning, binary management, maintenance, notifications …</b> – click to expand</summary>
 
 ### Quick Sync
 
@@ -176,35 +176,25 @@ All possible states, in priority order:
 
 **Fine resource tuning** — applies additional per‑folder and per‑device limits that match the **currently active Resource profile** (Low or Normal). These limits are **not applied automatically** when you switch profiles — you must open **Setup → Fine resource tuning → Apply** to push the correct numbers to a running Syncthing instance. It does so via the Syncthing REST API (PATCH config/folders/{id} and PATCH config/devices/{id}):
 
-| Setting | Low | Normal | v1.2.2 legacy |
-|---------|-----|--------|---------------|
-| `copiers` | 1 | 2 | ✅ applied |
-| `hashers` | 1 | 2 | ✅ applied |
-| `pullerMaxPendingKiB` | 16384 | 32768 | ✅ applied |
-| `scanProgressIntervalS` | -1 | 10 | ✅ applied |
-| `numConnections` (per device) | 1 | 2 | ⚠ skipped (added v1.20.0) |
+| Setting | Low | Normal |
+|---------|-----|--------|
+| `copiers` | 1 | 2 |
+| `hashers` | 1 | 2 |
+| `pullerMaxPendingKiB` | 16384 | 32768 |
+| `scanProgressIntervalS` | -1 | 10 |
+| `numConnections` (per device) | 1 | 2 |
 
 A **Reset to defaults** option sets all values to Syncthing's built-in defaults.
 
 **Resource profile (Low / Normal)** — applied at startup by the `start-syncthing` shell script via Go runtime environment variables, plus additional API-level options three seconds after start:
 
-| | Low | Normal | v1.2.2 legacy |
-|-|-----|--------|---------------|
-| `GOMEMLIMIT` | 64 MiB | 128 MiB | ✅ applied (env var) |
-| `GOGC` | 50 | 100 | ✅ applied (env var) |
-| `GOMAXPROCS` | 1 | 1 | ✅ applied (env var) |
-| `maxConcurrentIncomingRequestKiB` | 32768 | 262144 | ⚠ skipped (added v1.4.0) |
-| `maxFolderConcurrency` | 1 | 0 | ⚠ skipped (added v1.4.0) |
-
-> **v1.2.2 note:** Go runtime environment variables (`GOMEMLIMIT`, `GOGC`) are
-> set by `start-syncthing` regardless of binary version and provide the primary
-> memory protection on constrained devices.  The API-level limits are
-> supplementary and are safely skipped on v1.2.2.
-> All configuration mutations (add/remove folders and devices,
-> pause, resume, patch settings) are handled via transparent shims, so
-> there is no loss of functionality. Only the fine‑tuning options listed
-> above are skipped because the corresponding config fields did not exist
-> in that version.
+| | Low | Normal |
+|-|-----|--------|
+| `GOMEMLIMIT` | 64 MiB | 128 MiB |
+| `GOGC` | 50 | 100 |
+| `GOMAXPROCS` | 1 | 1 |
+| `maxConcurrentIncomingRequestKiB` | 32768 | 262144 |
+| `maxFolderConcurrency` | 1 | 0 |
 
 **Automatic FAT/FUSE tuning**  
 Every time Syncthing starts, the plugin checks all configured folders.  
@@ -213,14 +203,10 @@ it automatically applies the following safe defaults:
 
   • `modTimeWindowS = 2` – prevents spurious conflicts caused by the
     2‑second timestamp resolution of these filesystems.
-    *(Skipped for legacy v1.2.2 — that version had built-in FAT detection
-    before this field was introduced in v1.11.0.)*
   • `ignorePerms = true` – avoids conflicts from permission mismatches
     between Linux and FAT/FUSE.
   • `syncOwnership = false` / `sendOwnership = false` – prevents
     ownership tracking, which is not supported on FAT/FUSE.
-    *(Skipped for legacy v1.2.2 — ownership sync did not exist in that
-    version, so disabling it is unnecessary.)*
 
 These changes are **applied automatically at startup** for all folders,
 so no manual action is needed.  
@@ -230,88 +216,21 @@ everything to defaults if needed.
 
 **Network access (LAN only / Global)** — applied via `PATCH config/options` three seconds after startup:
 
-| Option | LAN only | Global | v1.2.2 legacy |
-|--------|----------|--------|---------------|
-| `globalAnnounceEnabled` | false | true | ✅ applied |
-| `relaysEnabled` | false | true | ✅ applied |
-| `natEnabled` | false | true | ✅ applied |
-| `crashReportingEnabled` | false | true | ✅ applied |
-| `autoUpgradeIntervalH` | 0 | 12 | ✅ applied |
-| `urAccepted` | -1 | 0 (if not already set) | ✅ applied |
+| Option | LAN only | Global |
+|--------|----------|--------|
+| `globalAnnounceEnabled` | false | true |
+| `relaysEnabled` | false | true |
+| `natEnabled` | false | true |
+| `crashReportingEnabled` | false | true |
+| `autoUpgradeIntervalH` | 0 | 12 |
+| `urAccepted` | -1 | 0 (if not already set) |
 
 LAN only also passes `--no-upgrade` to the daemon and sets `STNOUPGRADE=1`.
-
-### Legacy Syncthing support
-
-> ⚠️ **Experimental — this feature may not work as intended.** Legacy mode
-> has **not been tested on real old-kernel hardware** — the author has no
-> such device. Its decision logic (kernel detection and version selection),
-> the GitHub download URLs, and the v1.2.2 API-compatibility shim are covered
-> by an offline test suite (`spec/st_legacy_spec.lua`, 73 tests), and the
-> download URLs were confirmed against Syncthing's published release assets.
-> But the full on-device path — downloading a years-old Syncthing build,
-> launching it on a 2.6.x/3.0.x kernel, and actually syncing — has never been
-> exercised on a device. Treat it as best-effort: it may fail in ways the
-> offline tests cannot catch, **especially on the v1.2.2 path** for the
-> oldest kernels. If you try it, please report the result (whether it works
-> or not, with any error text) on the issue tracker so it can be improved.
-
-Some e-readers run a Linux kernel older than 3.2 (for example, the Kindle
-Paperwhite 1st Generation with kernel 2.6.31).  The Go runtime used by
-current Syncthing releases requires kernel ≥ 3.2; starting the daemon on an
-older kernel produces an immediate fatal crash:
-
-```
-runtime: epollwait on fd 4 failed with 38
-fatal error: runtime: netpoll failed
-```
-
-
-Legacy mode solves this by running a separate, older Syncthing binary that
-was compiled with a Go version compatible with the device's kernel:
-
-- **v1.27.12** — for kernels 2.6.32–3.1 (recommended).  Full modern REST
-  API; all plugin features work identically to the standard binary.
-
-- **v1.2.2** — very old kernels below 2.6.32 (e.g. Kindle PW1). Pre-dates the
-  modern `/rest/config` API. The plugin transparently translates all
-  configuration changes (adding/removing devices and folders, pausing,
-  patching settings) through a read‑modify‑write shim, so the full
-  folder/device management works exactly as with the standard binary.
-  Only the features listed in the table under *Performance and network
-  tuning* are skipped or adjusted.
-
-**Automatic detection** — on first load the plugin silently classifies the
-kernel via `uname -r` (falling back to the kernel's procfs files
-`/proc/sys/kernel/osrelease` and `/proc/version` when no `uname` binary is
-present) into one of three states: *old* (< 3.2, needs legacy),
-*modern* (≥ 3.2, runs the standard binary), or *unknown* (could not be read).
-If the kernel is old and legacy is not yet configured, a non-intrusive hint
-appears suggesting **Setup → Legacy Syncthing**.
-
-**Guided setup** — enabling legacy mode is one decision, not a quiz.
-**Setup → Legacy Syncthing → Set up Legacy mode…** detects the right version
-for the device's kernel, downloads it, and offers to start Syncthing straight
-away.  A *Choose version manually* option remains for the rare case where the
-detected kernel is misleading.
-
-**Isolated state** — the legacy daemon uses its own config directory
-(`settings/syncthing-legacy/`) separate from the standard one
-(`settings/syncthing/`).  Each binary has its own API key, TLS certificate,
-and device ID.  This means re-pairing is required when switching modes, but
-it prevents config-schema corruption that would occur if two binaries with
-different config-field sets shared the same `config.xml`.
-
-**Binary management** — the legacy binary (`syncthing-legacy`) is downloaded
-as part of the guided setup, or re-downloaded later via **Setup → Legacy
-Syncthing → Re-download legacy binary**.  The selected version is recorded on
-disk, so the plugin refuses to start a binary that does not match the chosen
-version.  Factory reset and plugin removal clean up both directories.
 
 ### Binary management
 
 - **First-run download prompt** — if no Syncthing binary is present, starting the plugin presents a friendly dialog explaining what Syncthing is and offering to download it. No technical knowledge required.
-- **Auto-download from official releases** — fetches the correct binary for your device architecture (ARM 32‑bit or ARM64) from the official [syncthing/syncthing](https://github.com/syncthing/syncthing/releases) GitHub Releases page.
+- **Auto-download from official releases** — fetches the latest binary for your device architecture (ARM 32‑bit or ARM64) from the official [syncthing/syncthing](https://github.com/syncthing/syncthing/releases) GitHub Releases page.
 - **Architecture verification before download** — detects `uname -m` and selects the matching `linux-<arch>` tarball. Shows a warning dialog if the architecture is unrecognised and lets you decide whether to proceed.
 - **Architecture check before start** — verifies the installed binary matches the device before attempting to launch. Refuses to start with an informative error if there is a mismatch.
 - **Size sanity check** — after downloading, verifies the file is within 75%–125% of the expected size. Rejects corrupted or truncated downloads before attempting extraction.
@@ -361,25 +280,14 @@ This plugin is tested and confirmed working on:
 
 | Platform | Device | Notes |
 |----------|--------|-------|
-| Kindle | **Paperwhite 12th Generation (2024)** | Standard mode |
-| Kindle | **Basic 10th Generation (2019)** | Standard mode |
-| Kobo | **Libra Colour (2024)** | Standard mode |
+| Kindle | **Paperwhite 12th Generation (2024)** | Local daemon |
+| Kindle | **Basic 10th Generation (2019)** | Local daemon |
+| Kobo | **Libra Colour (2024)** | Local daemon |
 | Android | Samsung A54 | Android (remote mode) |
-| Linux (WSL) | Acer Aspire 7 A715 | Standard mode (Windows 11 + WSL2, x86_64) |
+| Linux (WSL) | Acer Aspire 7 A715 | Local daemon (Windows 11 + WSL2, x86_64) |
 
 (Please send pull requests to add your tested device here!)
 
-
-### Older devices (kernel < 3.2)
-
-Devices with kernels older than 3.2 require **Legacy mode**.  The plugin
-detects the kernel version on first load and guides you to the right binary:
-
-| Kernel range | Binary | Example devices |
-|-------------|--------|-----------------|
-| ≥ 3.2 | Standard (latest) | Kobo Libra 2, Kindle PW4/5/12 |
-| 2.6.32–3.1 | Legacy **v1.27.12** | Kobo Touch 2, Kindle PW2/PW3 |
-| < 2.6.32 | Legacy **v1.2.2** | Kindle PW1, Kindle Touch |
 
 > ✅ **Android is supported in remote mode.**  
 > On Android the plugin does **not** run its own daemon; instead it connects as a
@@ -624,22 +532,8 @@ KOSyncthing+                                   ← top‑level entry
 │   ├── Fine resource tuning                 ← Apply via API or Reset to defaults;
 │   │   uses three‑button dialog (Apply /
 │   │   Reset to defaults / Cancel)
-│   ├── Network access                       ← LAN only / Global;
-│   │   applied immediately when running
-│   └── Legacy Syncthing [⚠ when needed]   ← shown only when the kernel is
-│       │                                    too old (< 3.2), OR legacy is
-│       │                                    already enabled, OR the kernel
-│       │                                    is unknown and a start failed.
-│       │                                    A modern-kernel device never
-│       │                                    sees this entry.
-│       ├── Set up Legacy mode… /            ← when OFF: opens guided setup
-│       │   Legacy mode: ON (vX.Y.Z)            (auto-detects version, offers
-│       │                                       to download and start).
-│       │                                    when ON: tap to disable.
-│       ├── Legacy version: v1.27.12 / v1.2.2 ← only when enabled; manual
-│       │   version override picker
-│       └── Re-download legacy binary (vX.Y.Z) ← only when enabled; offers
-│           to start Syncthing after install
+│   └── Network access                       ← LAN only / Global;
+│       applied immediately when running
 │
 ├── Automation
 │   ├── Show notifications                   ← on/off; when off no completion
@@ -862,7 +756,7 @@ The dialog shown depends on the file type:
 
 The **Resolve all N conflicts…** option offers three strategies:
 
-- **Auto-merge progress** — for each KOReader metadata conflict where at least one side has `percent_finished` (or the legacy `last_percent`), keeps whichever has the *higher* reading progress. Non-metadata files and conflicts where neither side has a progress value are skipped. Shows a summary: "Merged N — kept local for X, kept remote for Y, skipped Z."
+- **Auto-merge progress** — for each KOReader metadata conflict where at least one side has `percent_finished` (or the older `last_percent`), keeps whichever has the *higher* reading progress. Non-metadata files and conflicts where neither side has a progress value are skipped. Shows a summary: "Merged N — kept local for X, kept remote for Y, skipped Z."
 - **Keep ALL mine** — discards every conflict copy.
 - **Use ALL theirs** — replaces every local file with its conflict copy.
 
@@ -885,7 +779,7 @@ A quick overview of what's available:
 - **Status** – `isRunning`, `getConflicts`, `getFolderHealth`, `getStatusHeader`, `getDeviceId`
 - **Control** – `start`, `stop`, `quickSync`, `toggle`, `pauseAllFolders`, `resumeAllFolders`
 - **Conflict resolution** – `resolveAllConflicts` (keep_local / use_remote / auto_merge), `resolveConflictByPath`
-- **Information** – `getFolders`, `getDevices`, `getPendingDevices`, `getPendingFolders`, `getConflictsDetailed`, `getFolderIgnore`, `setFolderIgnore`, `getGUIPort`, `getResourceProfile`, `getNetworkAccess`, `isLegacyMode`, `getLegacyVersion`
+- **Information** – `getFolders`, `getDevices`, `getPendingDevices`, `getPendingFolders`, `getConflictsDetailed`, `getFolderIgnore`, `setFolderIgnore`, `getGUIPort`, `getResourceProfile`, `getNetworkAccess`
 - **Periodic sync** – `isPeriodicSyncEnabled`, `getPeriodicSyncInterval`, `getNextPeriodicSyncAt`, `setPeriodicSyncEnabled`, `setPeriodicSyncInterval`, `runPeriodicSyncNow`
 - **Proxied REST call** – `apiCall(endpoint, method, body)` — talk to Syncthing without ever seeing the API key
 - **Events** – `onStatusChange` / `offStatusChange` (custom listeners) and KOReader global events (`SyncthingSyncCompleted`, `SyncthingConflictDetected`)
@@ -937,7 +831,7 @@ All settings are stored in KOReader's `G_reader_settings` under the `syncthing_*
 | `syncthing_gui_user` | string | `"syncthing"` | Web GUI username |
 | `syncthing_gui_password` | string | `nil` | Web GUI password (stored locally only) |
 | `syncthing_autostart_mode` | string | `"off"` | Start mode: `"off"` = none selected (manual / Quick Sync only; default), `"wifi"` = When Wi-Fi is on, `"always"` = Always (brings Wi-Fi up) |
-| `syncthing_auto_start_always` | bool | — | Legacy pre-mode flag; migrated to `syncthing_autostart_mode` and no longer read |
+| `syncthing_auto_start_always` | bool | — | Former pre-mode flag; migrated to `syncthing_autostart_mode` and no longer read |
 | `syncthing_auto_start_charging` | bool | `false` | Gate all automation on charging state |
 | `syncthing_notifications_enabled` | bool | `true` | Enable toast notifications |
 | `syncthing_resource_profile` | string | `"low"` | `"low"` or `"normal"` |
@@ -955,15 +849,9 @@ All settings are stored in KOReader's `G_reader_settings` under the `syncthing_*
 | `syncthing_was_running` | bool | — | Internal flag: remembers daemon state across suspend/resume; do not edit |
 | `syncthing_data_dir` | string | `nil` | Internal: relocated database directory when the default storage fails the disk-I/O probe; do not edit |
 | `syncthing_data_notice_seen` | bool | — | Internal: suppresses the one-time database-relocation notice; do not edit |
-| `syncthing_use_legacy` | bool | `false` | Legacy mode enabled; set via **Setup → Legacy Syncthing** |
-| `syncthing_legacy_version` | string | `"v1.27.12"` | Selected legacy binary version tag; retained across disable so re-enable is one tap |
-| `syncthing_legacy_installed_version` | string | — | Version of the `syncthing-legacy` binary actually on disk; written after a successful download, checked before start so a version/file mismatch is refused |
-| `syncthing_start_failed` | bool | — | Internal flag: set when a start attempt times out on a non-modern kernel; surfaces the Legacy menu as an escape hatch; cleared on the next successful start |
-
 Syncthing's own config, TLS keys, device ID cache, and index database live in
-`settings/syncthing/` (standard) or `settings/syncthing-legacy/` (legacy mode)
-inside KOReader's data directory — not inside the plugin folder. Plugin updates
-never touch your pairing configuration or folder setup.
+`settings/syncthing/` inside KOReader's data directory — not inside the plugin
+folder. Plugin updates never touch your pairing configuration or folder setup.
 
 </details>
 
@@ -1025,20 +913,6 @@ kosyncthing_plus.koplugin/
 ├── syncthing            Syncthing binary — not shipped, downloaded on first use;
 │                        lives at plugin root
 │
-├── syncthing-legacy     Legacy Syncthing binary — only present when legacy mode
-│                        is enabled and downloaded; same folder as above
-│
-├── legacy.lua           Legacy mode module: kernel detection (kernelState →
-│                        old/modern/unknown, and recommendedVersion → the
-│                        v1.2.2-vs-v1.27.12 choice, both cached); lifecycle
-│                        (enable/disable with cache invalidation for api_key,
-│                        device-id, and binary-exists); binary download from
-│                        GitHub with chmod verification and installed-version
-│                        recording; API compat patch for v1.2.2 (read-modify-
-│                        write via PUT /rest/system/config replaces PATCH
-│                        endpoints that didn't exist before v1.12.0); guided
-│                        setup flow and manual version picker
-│
 ├── st_android.lua       Android remote-mode module (loaded only on Android):
 │                        patches the plugin into a REST client of a separately
 │                        installed Syncthing app — TLS-capable apiCall override,
@@ -1048,22 +922,11 @@ kosyncthing_plus.koplugin/
 │
 ├── start-syncthing      Shell launcher script:
 │                          • argument validation (home_dir, port, resource,
-│                            network, binary_name [default: syncthing],
-│                            config_dirname [default: syncthing],
-│                            legacy_version [default: empty])
+│                            network and optional data_dir)
 │                          • double-start guard via PID file
-│                          • CLI dialect branch keyed on legacy_version:
-│                            - v1.2.2 → historical single-dash CLI
-│                              (-generate, -home, -gui-address, -logfile,
-│                              -no-browser, -no-restart) — predates the
-│                              serve/generate subcommands
-│                            - standard / v1.27.12 → modern subcommand CLI
-│                              with progressive first-run flag fallback
-│                              (--no-port-probing --no-default-folder →
-│                              --no-port-probing → bare generate)
-│                          • device ID caching to settings/<config_dirname>/
-│                            device-id (skipped on v1.2.2, which has no
-│                            device-id subcommand)
+│                          • current Syncthing subcommand CLI and first-run
+│                            config generation
+│                          • device ID caching to settings/syncthing/device-id
 │                          • Go runtime env vars (GOMEMLIMIT, GOGC, GOMAXPROCS=1)
 │                          • STNOUPGRADE / --no-upgrade for LAN mode
 │                          • setsid detach when available; nice -n 10 launch
@@ -1156,11 +1019,8 @@ kosyncthing_plus.koplugin/
                          isOk(r) — nil-safe check for SafeClient result tables
                          (isOk(nil) → false, never errors); errOf(r) — extracts the
                          error string from a result or returns "no response" when the
-                         result is nil or carries no error field;
-                         isLegacy() / getBinaryPath() / getConfigDir() — mode-aware
-                         helpers evaluated at call time (not module load time) so that
-                         enabling or disabling legacy mode takes effect without a module
-                         reload; all three read G_reader_settings on every invocation
+                         result is nil or carries no error field; getBinaryPath() /
+                         getConfigDir() — standard binary and config paths
 
 locale/
 ├── syncthing.pot        Master translatable string template
@@ -1262,22 +1122,6 @@ no Wi‑Fi no meaningless background resource usage.
 
 - Tap **Quick Sync** again when you have a stable Wi‑Fi connection.
 - If you use Periodic Sync, it will automatically try again later.
-
-### Syncthing crashes immediately with "netpoll failed"
-
-If the log shows:
-
-
-```
-runtime: epollwait on fd 4 failed with 38
-fatal error: runtime: netpoll failed
-```
-
-
-Your device's Linux kernel is too old for the current Syncthing binary.
-Open **Setup → Legacy Syncthing → Set up Legacy mode…**.  The plugin detects
-the right version for your kernel, downloads it, and offers to start Syncthing.
-See [Legacy Syncthing support](#legacy-syncthing-support) for background.
 
 ### Syncthing won't start
 

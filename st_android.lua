@@ -5,7 +5,7 @@
 -- BasicSync app already runs the daemon and exposes the REST API on
 -- 127.0.0.1.  This module makes the plugin a *remote-mode client* of that app.
 --
--- Design (deliberately mirrors legacy.lua: init() + patchSyncthingObject()):
+-- Design:
 --   * The proven raw-socket apiCall() in st_api.lua is NOT touched.  Instead
 --     patchSyncthingObject() swaps self.apiCall for an Android implementation
 --     built on ssl.https.request — the same high-level path Syncery uses and

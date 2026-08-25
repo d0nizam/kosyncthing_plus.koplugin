@@ -241,7 +241,7 @@ describe("getStatusHeader – priority cases", function()
         assert.is_truthy(h:find("2/2", 1, true))   -- LAN + global counted, local excluded
     end)
 
-    -- Older daemons (e.g. the legacy v1.2.2 binary) may not send isLocal, so the
+    -- Older daemons may not send isLocal, so the
     -- local entry is identified by its key matching the local device ID instead.
     it("excludes the local device by device ID when isLocal is absent", function()
         local H = freshHealth()

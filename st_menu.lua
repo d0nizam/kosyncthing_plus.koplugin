@@ -1244,56 +1244,6 @@ local function getSetupMenu(self)
         separator = true,
     })
 
-    -- Legacy Syncthing — visibility reflects what the device could plausibly
-    -- need, so a modern-kernel device never sees an entry whose only effect
-    -- would be to downgrade its working Syncthing.
-    --
-    --   kernel "modern" (≥ 3.2) → NEVER shown (unless already enabled, so it
-    --       can be turned OFF).  Current Syncthing runs fine here; a start
-    --       failure is never a kernel problem (wrong binary arch, busy port,
-    --       slow first-run keygen), so legacy mode cannot help.
-    --   kernel "old" (< 3.2) → shown with a ⚠.  This device genuinely needs it.
-    --   kernel "unknown" → shown, but NEUTRAL (no ⚠).  uname and procfs could
-    --       not be read, so we keep it discoverable for the rare old-but-
-    --       unprobeable e-reader, without claiming a downgrade is needed — the
-    --       failure may be a wrong/corrupt binary instead, and the start-timeout
-    --       message steers such devices to re-installing the binary first.
-    local _leg_ok, _leg_mod = pcall(require, "legacy")
-    if _leg_ok then
-        local kstate         = _leg_mod.kernelState()
-        local legacy_enabled = _leg_mod.isEnabled()
-
-        local show_legacy = legacy_enabled
-            or kstate == "old"
-            or kstate == "unknown"
-
-        if show_legacy then
-            -- ⚠ only when we KNOW it is needed: an old kernel, not yet enabled.
-            -- An unprobeable kernel is shown neutrally.
-            local needs_attention = (not legacy_enabled) and kstate == "old"
-            local legacy_label = needs_attention
-                and _("Legacy Syncthing ⚠")
-                or  _("Legacy Syncthing")
-            local legacy_help = _(
-                "Legacy mode runs an older Syncthing build for e-readers "
-             .. "whose Linux kernel is too old (below 3.2) for the current "
-             .. "Syncthing.\n\n"
-             .. "The symptom is Syncthing failing to start with a "
-             .. "'netpoll failed' or 'epollwait failed' error.\n\n"
-             .. "Open this to set it up; the right version is detected for "
-             .. "you. Devices with a newer kernel do not need this.")
-            if #sub > 0 then sub[#sub].separator = true end
-            table.insert(sub, {
-                text                = legacy_label,
-                help_text           = legacy_help,
-                hold_callback       = D.helpHold(legacy_help),
-                sub_item_table_func = function()
-                    return _leg_mod.buildMenuItems(self)
-                end,
-            })
-        end
-    end
-
     return sub
 end
 
@@ -1524,8 +1474,7 @@ end
 ---------------------------------------------------------------------------
 local function getMaintenanceMenu(self, touchmenu_instance)
     -- The log lives in the config directory (start-syncthing writes
-    -- --log-file there).  Use getConfigDir() so it follows legacy mode rather
-    -- than hardcoding settings/syncthing.
+    -- --log-file there).  Use getConfigDir() so the path stays centralized.
     local log_path = U.getConfigDir() .. "/syncthing.log"
 
     -- Help texts hoisted to locals so each one is referenced both by
@@ -1713,9 +1662,6 @@ callback = self.safe("Diagnostic snapshot", function()
     kv("Running",   (self:isRunning() and "yes" or "no")
                     .. (pid and ("  (PID " .. tostring(pid) .. ")") or ""))
     kv("Port",      tostring(self.syncthing_port or "?"))
-    kv("Legacy",    U.isLegacy()
-                    and (G_reader_settings:readSetting("syncthing_legacy_version") or "?")
-                    or  "off")
     kv("Device ID", short_id)
 
     -- ── Binary & Process ─────────────────────────────────────────────────────
