@@ -27,7 +27,6 @@ local function installRichStUtils(overrides)
             getBinaryPath       = overrides.getBinaryPath    or function() return BINARY end,
             getConfigDir        = overrides.getConfigDir     or function() return "/tmp/koreader/settings/syncthing" end,
             getDataDir          = overrides.getDataDir       or function() return "/tmp/koreader/settings/syncthing", nil end,
-            isLegacy            = overrides.isLegacy         or function() return false end,
             execOk              = overrides.execOk           or function(r) return r == 0 or r == true end,
             loopbackIsUp        = overrides.loopbackIsUp     or function() return true end,
             invalidateLoopbackCache = function() end,
@@ -606,26 +605,6 @@ describe("start() early exits", function()
         assert.is_false(plugin._starting)
     end)
 
-    it("shows warning when legacy version not downloaded", function()
-        Mock.state.path_exists[BINARY] = true
-        installRichStUtils({ isLegacy = function() return true end })
-        G_reader_settings:saveSetting("syncthing_legacy_version", "v1.27.12")
-        G_reader_settings:saveSetting("syncthing_legacy_installed_version", "v1.2.2")
-        popen_map["uname -m"] = { lines = { "x86_64" } }
-        popen_map["readelf"]  = { lines = { "X86-64" } }
-        local P = reloadProcess()
-        local plugin = makePlugin()
-        local cb_called = false
-        P.start(plugin, function() cb_called = true end)
-        assert.is_true(cb_called)
-        assert.is_false(plugin._starting)
-        local warnings = {}
-        for _, w in ipairs(Mock.state.shown) do
-            if w.icon == "notice-warning" then table.insert(warnings, w) end
-        end
-        assert.is_true(#warnings > 0)
-    end)
-
     it("shows warning when exec of start-syncthing fails", function()
         Mock.state.path_exists[BINARY] = true
         Mock.state.path_exists["/tmp/koreader/settings/syncthing"] = true
@@ -1151,16 +1130,6 @@ describe("applyNetworkSettings", function()
         assert.are.equal(0,      plugin._patch.maxFolderConcurrency)
     end)
 
-    it("skips resource-limit fields for v1.2.2 legacy (avoids false-positive patches)", function()
-        installRichStUtils({ isLegacy = function() return true end })
-        G_reader_settings:saveSetting("syncthing_legacy_version", "v1.2.2")
-        local P = reloadProcess()
-        local plugin = makeNetPlugin("lan", {})
-        P.applyNetworkSettings(plugin)
-        Mock.runTimers(5)
-        assert.is_nil(plugin._patch.maxConcurrentIncomingRequestKiB)
-        assert.is_nil(plugin._patch.maxFolderConcurrency)
-    end)
 end)
 
 
