@@ -1,6 +1,6 @@
 # Test Suite
 
-516 tests across 16 spec files. No KOReader installation required — all
+440 tests across 15 spec files. No KOReader installation required — all
 platform modules are stubbed by the mock layer.
 
 ## Setup
@@ -13,7 +13,7 @@ platform modules are stubbed by the mock layer.
 
 This does everything automatically: installs MinGW-w64 (C compiler) via
 winget, installs LuaRocks standalone (bundles LuaJIT), installs the
-`luafilesystem` rock, then runs all 16 spec files.
+`luafilesystem` rock, then runs all 15 spec files.
 
 The script is idempotent — subsequent runs are much faster because
 already-installed components are skipped.
@@ -88,7 +88,7 @@ st_android_spec.lua ... OK
 st_api_public_spec.lua ... OK
 ...
 Total time: 4.8s
-Specs: 16, Passed: 16, Failed: 0
+Specs: 15, Passed: 15, Failed: 0
 ```
 
 ## Spec files
@@ -103,15 +103,14 @@ Specs: 16, Passed: 16, Failed: 0
 | `st_guard_spec.lua` | Named lease idempotency, standby/wakelock balance, exception-path release | 25 |
 | `st_utils_spec.lua` | Path helpers, `isTransientFolderError`, `formatTime`, `getFriendlySize`, settings key catalogue, loopback detection, **`detectArch`** (LuaJIT path, `uname -m` fallback, unknown/failure cases), **`extractBinaryFromArchive`** (selects the root-level executable rather than the `etc/` helper scripts that share its name, size fallback, directory entries ignored, and the open/no-entry/extract-failure/archiver-missing paths) | 74 |
 | `st_android_spec.lua` | `androidApiCall` contract: status codes, JSON decode, error recording, TLS flag propagation; **IgnoreRegistry scanner wiring** (exclusion predicate seam, both `.`/`~` separators) | 25 |
-| `st_datadir_spec.lua` | Data-directory selection, legacy-path migration, FAT/FUSE detection | 11 |
+| `st_datadir_spec.lua` | Data-directory selection, stale-setting handling, FAT/FUSE detection | 10 |
 | `st_filesystem_spec.lua` | Safe-delete guard, dangerous-path rejection, conflict-file scanning, archive extraction | 36 |
 | `st_api_spec.lua` | `SafeClient` HTTP layer: GET/PUT/PATCH routing, error capture, cache invalidation | 33 |
-| `st_legacy_spec.lua` | Legacy-mode gate (`needsPatch`), `downloadBinary` URL/arch construction, archive validation (`fileSize`, `isGzip`, `isELF`), atomic staging install, `patchSyncthingObject` read-modify-write shim, **procfs kernel-detection fallback** (`/proc/sys/kernel/osrelease`, `/proc/version`) when `uname` is unavailable, **two-stage extraction** (selective entry extraction, then a system-`tar` fallback for builds without `ffi/archiver`, asserting the fallback passes `--strip-components=1` and no member pattern) | 74 |
-| `st_process_spec.lua` | Binary lifecycle: `start`, `stop`, `kindlePortGuard`, Kindle UDP port guards, `binaryExists` (ELF check), `isRunning`, `safeHomeDir`, `applyNetworkSettings`, `stopPlugin`, **Autostart pause (session-only flag) set only on manual stop, cleared on start, absent on automatic/suspend stops** | 56 |
-| `st_api_public_spec.lua` | `IgnoreRegistry` companion API: `register` (single string or list, all-or-nothing validation, de-dup, **replace** semantics, idempotent generation bumps, apostrophe globs), `getAll` returns an independent copy, `unregister`/`isRegistered`, and **`matchesConflictBasename`** (de-mangles a conflict copy to its original and matches registered globs — exact names, `*` globs, both `.`/`~` separators, multi-dot originals, the conflict-copy gate, stray legacy values) | 16 |
+| `st_process_spec.lua` | Binary lifecycle: `start`, `stop`, `kindlePortGuard`, Kindle UDP port guards, `binaryExists` (ELF check), `isRunning`, `safeHomeDir`, `applyNetworkSettings`, `stopPlugin`, **Autostart pause (session-only flag) set only on manual stop, cleared on start, absent on automatic/suspend stops** | 54 |
+| `st_api_public_spec.lua` | `IgnoreRegistry` companion API: `register` (single string or list, all-or-nothing validation, de-dup, **replace** semantics, idempotent generation bumps, apostrophe globs), `getAll` returns an independent copy, `unregister`/`isRegistered`, and **`matchesConflictBasename`** (de-mangles a conflict copy to its original and matches registered globs — exact names, `*` globs, both `.`/`~` separators, multi-dot originals, the conflict-copy gate, malformed pre-v2 values); public API 1.1.1 surface | 17 |
 | `st_plugin_update_spec.lua` | Plugin self-updater pure logic: `parseVersion`/`isNewer` (numeric semver, differing component counts), `selectAsset` (release `.zip` asset vs `zipball_url` fallback and the strip-root flag), `stripMarkdown`, `getInstalledPluginVersion`, and a guard that the module hard-codes no `/tmp` path (not writable on Android) | 13 |
 | `st_update_download_spec.lua` | `downloadFile` LuaSocket transport: **no double-close** of the handle on success (`socketutil.file_sink` already closes it), partial-file removal + defensive close when `http.request` raises, non-200 returns false | 3 |
-| **Total** | | **516** |
+| **Total** | | **440** |
 
 ### Note on `st_process_spec` and Busted
 
@@ -150,7 +149,7 @@ first `before_each` fires. The plain runner in `run_tests.lua` does not use
   because `detectArch` uses `pcall(require, "jit")` which reads the module
   cache, not the global — this matters when running under `texlua`/LuaTeX
   where the real `jit` module is already cached at startup.
-- `st_legacy_spec` and `st_process_spec` stub new `st_utils` helpers
+- `st_process_spec` stubs new `st_utils` helpers
   (`fileSize`, `isGzip`, `isELF`, `kindleOpenPortUDP`, `kindleClosePortUDP`)
   as controllable fakes. Defaults represent the happy path so existing tests
   are unaffected; tests that exercise a specific failure path override via
