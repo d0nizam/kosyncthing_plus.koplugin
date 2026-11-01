@@ -187,9 +187,9 @@ local MIGRATIONS = {
 local function _isFreshInstall()
     -- Check ALL plugin-owned settings keys so this function can never drift
     -- out of sync with the key list.  Previously a hardcoded subset of 7 keys
-    -- was used; that worked in practice, but ANY key being set (including new
-    -- ones like syncthing_use_legacy) is sufficient proof the plugin has been
-    -- used before and a migration should run.
+    -- was used; that worked in practice, but ANY plugin key being set is
+    -- sufficient proof the plugin has been used before and a migration should
+    -- run.
     --
     -- syncthing_settings_version is excluded: _migrateSettings() already
     -- checked it (current == 0) before calling us, so it cannot be set here.
@@ -231,7 +231,7 @@ function Syncthing:init()
     self.gui_user              = G_reader_settings:readSetting("syncthing_gui_user", "syncthing")
     self.auto_start_charging   = G_reader_settings:readSetting("syncthing_auto_start_charging", false)
     -- Autostart mode: "off" | "wifi" | "always".
-    -- Migrate the legacy boolean syncthing_auto_start_always (true -> "always").
+    -- Migrate the former boolean syncthing_auto_start_always (true -> "always").
     local autostart_mode = G_reader_settings:readSetting("syncthing_autostart_mode")
     if autostart_mode ~= "off" and autostart_mode ~= "wifi" and autostart_mode ~= "always" then
         autostart_mode = G_reader_settings:isTrue("syncthing_auto_start_always") and "always" or "off"
@@ -307,8 +307,7 @@ function Syncthing:init()
     self:onDispatcherRegisterActions()
 	
 	if self:binaryExists() and not self.gui_password then
-		-- Use U.getConfigDir() so we read from the correct config directory
-		-- regardless of whether legacy mode is active.
+		-- Use U.getConfigDir() so this stays aligned with the configured path.
 		local config_xml_path = U.getConfigDir() .. "/config.xml"
 		if util.pathExists(config_xml_path) then
 			local f = io.open(config_xml_path, "r")
@@ -320,43 +319,6 @@ function Syncthing:init()
 				end
 			end
 		end
-	end
-
-	-- Kernel version check: detect whether this device needs the legacy binary.
-	-- needsLegacy() caches its result internally so this call is free on all
-	-- subsequent menu opens that also check self._kernel_needs_legacy.
-	local _lk_ok, _lk_mod = pcall(require, "legacy")
-	self._kernel_needs_legacy = _lk_ok and _lk_mod.needsLegacy() or false
-
-	-- One-time hint: if the kernel is old but legacy is not yet configured,
-	-- show a non-blocking notice the first time the user opens the plugin.
-	-- We delay it by 6 s so it appears after the UI has fully settled and is
-	-- not hidden behind the loading screen.
-	--
-	-- The "one-time" part needs a persistent flag: init() runs on every plugin
-	-- instantiation (each FileManager <-> Reader transition, and after resume),
-	-- so without it the notice reappears for the whole life of the install on
-	-- an old-kernel device -- and, being a delayed popup, it lands on top of
-	-- whatever is drawing at the time (e.g. a lock-screen plugin).  The flag is
-	-- set when the notice is actually shown, not when it is scheduled, so
-	-- closing KOReader within the 6 s window does not consume it.  The standing
-	-- information stays available in the menu, which shows "Legacy Syncthing" with
-	-- a warning marker whenever the kernel needs it.
-	local _legacy_hint_key = "syncthing_legacy_hint_seen"
-	if self._kernel_needs_legacy and not U.isLegacy()
-		and not G_reader_settings:isTrue(_legacy_hint_key) then
-		UIManager:scheduleIn(6, function()
-			-- Re-check: legacy mode may have been enabled during the delay.
-			if U.isLegacy() or G_reader_settings:isTrue(_legacy_hint_key) then return end
-			UIManager:show(InfoMessage:new{
-				timeout = 10,
-				text    = _(
-					"Your device has an older kernel.\n\n"
-				 .. "If Syncthing fails to start, enable Legacy mode\n"
-				 .. "in Setup → Legacy Syncthing."),
-			})
-			G_reader_settings:saveSetting(_legacy_hint_key, true)
-		end)
 	end
 
     self._health_check_fn = function()
@@ -728,24 +690,6 @@ Syncthing._cacheInvalidate         = cacheInvalidate
 Syncthing._invalidateConflictCache = invalidateConflictCache
 Syncthing._invalidateProcess       = invalidateProcess
 Syncthing._invalidateFolders       = invalidateFolders
-
--- ---------------------------------------------------------------------------
--- Legacy mode: API compatibility shim (class-level, applied once at startup)
---
--- This must run AFTER all modules are mixed in because it wraps methods
--- that were just installed by the mixin loop (getConfig, getFolders, etc.).
---
--- The shim is installed UNCONDITIONALLY.  patchSyncthingObject is idempotent,
--- and every wrapper it installs falls through to the original method unless
--- legacy mode is BOTH enabled AND on a version that needs the patch (v1.2.2).
--- Installing it up front means enabling v1.2.2 from the menu takes effect in
--- the same KOReader session (AD-12); the per-call guard means standard mode
--- and v1.27.12 are never routed through the old endpoint (AD-13).
--- ---------------------------------------------------------------------------
-local _legacy_ok, _legacy_mod = pcall(require, "legacy")
-if _legacy_ok then
-    _legacy_mod.patchSyncthingObject(Syncthing)
-end
 
 pcall(require, "st_insert_menu")
 

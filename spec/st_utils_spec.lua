@@ -658,13 +658,13 @@ describe("detectArch", function()
             "syncthing_auto_merge_conflicts must be in ALL_SETTINGS_KEYS for factory reset")
     end)
 
-    it("ALL_SETTINGS_KEYS includes syncthing_legacy_hint_seen", function()
+    it("ALL_SETTINGS_KEYS includes the obsolete kernel-hint key", function()
         local U = freshUtilsArch()
         local keys = {}
         for _, k in ipairs(U.ALL_SETTINGS_KEYS) do keys[k] = true end
         assert.is_true(keys["syncthing_legacy_hint_seen"],
-            "syncthing_legacy_hint_seen must be in ALL_SETTINGS_KEYS so factory reset "
-         .. "and plugin removal clear the one-time old-kernel notice")
+            "the obsolete kernel-hint key must be cleared by factory reset "
+         .. "and plugin removal")
     end)
 end)
 

@@ -23,9 +23,8 @@ local T           = ffiutil.template
 local _    = require("syncthing_i18n").gettext
 local U    = require("st_utils")
 -- Config directory is resolved per call via U.getConfigDir() so password and
--- username writes always target the active mode's config.xml (standard or
--- legacy).  The former module-level `path` constant hardcoded the standard
--- directory and was removed (BUG-21).
+-- username writes cannot use stale path state.  The former module-level `path`
+-- constant was removed (BUG-21).
 
 ---------------------------------------------------------------------------
 -- Password dialog (single dialog, password-first, optional username step)

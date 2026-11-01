@@ -308,25 +308,19 @@ local ALL_SETTINGS_KEYS = {
     "syncthing_arch_warning_shown",
     "syncthing_password_configured",
     "syncthing_password_skip_at",
-    -- Deprecated: no longer written or read (kernel detection now uses procfs,
-    -- and the Legacy hint no longer gates on a start failure).  Kept here only
-    -- so a factory reset still clears any value left by an older version.
+    -- Deprecated: no longer written or read.  Kept here only so a factory
+    -- reset still clears any value left by an older version.
     "syncthing_start_failed",
     -- Database relocation (AD-19): where the SQLite DB lives when /mnt/us is a
     -- hard_remove FUSE mount, plus the one-time "first scan" notice flag.  Both
     -- are cleared by factory reset so a fresh DB re-resolves and re-notifies.
     "syncthing_data_dir",
     "syncthing_data_notice_seen",
-    -- Legacy mode keys — must be here so factory reset and plugin removal
-    -- clean them up correctly.  They are written by legacy.lua but owned
-    -- by this list.
+    -- Obsolete mode-selection keys.  Kept only so factory reset and plugin
+    -- removal clean values left by older plugin versions.
     "syncthing_use_legacy",
     "syncthing_legacy_version",
     "syncthing_legacy_installed_version",
-    -- Written by main.lua: set once the old-kernel notice has actually been
-    -- shown, so it does not reappear on every plugin instantiation.  Clearing
-    -- it on factory reset is intentional — a fresh install should get the
-    -- notice once again.
     "syncthing_legacy_hint_seen",
     -- Android remote-mode keys (written by st_android): the API key, port and
     -- the discovered scheme (http/https) used to reach the Syncthing app.
@@ -356,25 +350,10 @@ end
 local function setGUIPassword(password, config_dir, gui_user)
     if not config_dir then return false, "no config directory provided" end
     local user = gui_user or "syncthing"
-    -- Use whichever binary is currently active (standard or legacy).
-    -- G_reader_settings is a KOReader global, available at call time.
-    local use_legacy = G_reader_settings:isTrue("syncthing_use_legacy")
-    local binary = use_legacy
-        and plugin_path .. "syncthing-legacy"
-        or  plugin_path .. "syncthing"
-    -- Fallback: if the preferred binary is missing but the other one exists,
-    -- use it.  This covers the brief transition window when the user has just
-    -- toggled legacy mode but hasn't yet downloaded the corresponding binary.
+    local binary = plugin_path .. "syncthing"
     if not util.pathExists(binary) then
-        local fallback = use_legacy
-            and plugin_path .. "syncthing"
-            or  plugin_path .. "syncthing-legacy"
-        if util.pathExists(fallback) then
-            binary = fallback
-        else
-            logger.warn("[Syncthing] Cannot set password: no Syncthing binary found")
-            return false, "Syncthing binary not found in plugin folder"
-        end
+        logger.warn("[Syncthing] Cannot set password: no Syncthing binary found")
+        return false, "Syncthing binary not found in plugin folder"
     end
 
     if not util.pathExists(config_dir) then
@@ -588,14 +567,9 @@ end
 -- Config directory (named local so getDataDir and the public table share
 -- one definition instead of duplicating the path computation).
 --
---   Standard mode: .../settings/syncthing
---   Legacy mode:   .../settings/syncthing-legacy
 ---------------------------------------------------------------------------
 local function getConfigDir()
-    local base = DataStorage:getFullDataDir() .. "/settings/"
-    return G_reader_settings:isTrue("syncthing_use_legacy")
-        and base .. "syncthing-legacy"
-        or  base .. "syncthing"
+    return DataStorage:getFullDataDir() .. "/settings/syncthing"
 end
 
 ---------------------------------------------------------------------------
@@ -614,8 +588,7 @@ end
 -- userspace flag that does NOT appear in /proc/mounts (confirmed on the
 -- affected device, whose mount line is indistinguishable from a safe one).
 -- Probing the actual unlink-then-write behaviour is filesystem- and
--- model-agnostic and future-proof.  LevelDB (legacy 1.x binaries) is
--- unaffected, so relocation applies to the standard 2.x binary only.
+-- model-agnostic and future-proof.
 ---------------------------------------------------------------------------
 
 -- unlinkWriteBroken(dir): true when "open fd, unlink, write" fails in `dir`.
@@ -668,7 +641,7 @@ local DATA_DIR_COMFORT = 80 * 1024 * 1024   -- prefer a candidate with >= this
 local DATA_DIR_MINIMUM = 20 * 1024 * 1024   -- refuse a candidate below this
 
 -- resolveDataDir(config_dir, opts) -> data_dir, reason, note
--- opts (all optional; used by tests): legacy, sticky, candidates,
+-- opts (all optional; used by tests): sticky, candidates,
 --   comfort_bytes, min_bytes, probe, free_space.  In production these derive
 --   from settings/Device and the real probe; tests inject probe/free_space to
 --   exercise the broken-filesystem path without a real FUSE mount.
@@ -678,15 +651,6 @@ local function resolveDataDir(config_dir, opts)
     local minimum   = opts.min_bytes     or DATA_DIR_MINIMUM
     local probe     = opts.probe         or unlinkWriteBroken
     local freespace = opts.free_space    or getFreeSpace
-
-    -- Legacy (LevelDB) is not affected — never relocate.
-    if opts.legacy == nil then
-        if G_reader_settings:isTrue("syncthing_use_legacy") then
-            return config_dir, "legacy", nil
-        end
-    elseif opts.legacy then
-        return config_dir, "legacy", nil
-    end
 
     -- Sticky / manual override: a previously chosen (or user-set) directory,
     -- reused only if it still exists, is writable, AND is not itself broken.
@@ -818,35 +782,8 @@ return {
     isOk                      = isOk,
     errOf                     = errOf,
 
-    -- ---------------------------------------------------------------------------
-    -- Legacy-mode helpers — evaluated at CALL TIME, not at module load time.
-    --
-    -- The critical design choice here is that all three functions read from
-    -- G_reader_settings on every invocation instead of caching a static value
-    -- at require() time.  This matters because:
-    --   1. st_utils is the very first module loaded by main.lua, long before
-    --      legacy.lua has had a chance to run its init() logic.
-    --   2. G_reader_settings is a KOReader global that is always available and
-    --      always reflects the current on-disk state.
-    -- Using a frozen table field (the old syncthing_binary approach) would
-    -- evaluate the condition once and lock it in for the entire session,
-    -- meaning legacy mode could never take effect without a full KOReader restart
-    -- — and even then only if the module cache happened to be cleared.
-    -- ---------------------------------------------------------------------------
-    isLegacy = function()
-        -- True when legacy mode has been explicitly enabled by the user.
-        return G_reader_settings:isTrue("syncthing_use_legacy")
-    end,
-
     getBinaryPath = function()
-        -- Returns the path to the active Syncthing binary.
-        -- When legacy mode is off this is the standard "syncthing" binary;
-        -- when it is on it is "syncthing-legacy" in the same plugin folder.
-        -- All callers that formerly used U.syncthing_binary (a frozen string)
-        -- now call this function so the correct binary is always addressed.
-        return G_reader_settings:isTrue("syncthing_use_legacy")
-            and plugin_path .. "syncthing-legacy"
-            or  plugin_path .. "syncthing"
+        return plugin_path .. "syncthing"
     end,
 
     -- Extract just the Syncthing executable from a release tarball, straight to
@@ -862,8 +799,7 @@ return {
     -- script that was then rejected as "not a valid Linux binary".  Matching the
     -- entry inside the archive is unambiguous: the executable is the only
     -- `syncthing` entry with exactly one path component ahead of it, and that
-    -- holds regardless of the order entries appear in (v1.2.2 lists the
-    -- executable first, v1.27.12 and v2.x list it last).
+    -- holds regardless of the order entries appear in.
     --
     -- `entry.size` is the fallback if a future archive ever changes that shape:
     -- the executable is ~25 MB, the helper scripts under 2 KB.
@@ -910,7 +846,7 @@ return {
     end,
 
     -- Single source of truth for the config directory (see the named local
-    -- above).  Used by st_api, st_process, st_settings, main, legacy.
+    -- above).  Used by st_api, st_process, st_settings, and main.
     getConfigDir = getConfigDir,
 
     -- Behavioural probe and resolver, exported for the test suite.
@@ -924,8 +860,7 @@ return {
     -- everywhere else it equals the config directory.  Resolved once per session
     -- and the choice persisted in syncthing_data_dir so it is stable across
     -- restarts.  Returns: dir, reason, note.
-    --   reason ∈ { legacy, sticky, clean, redirected, redirected_tight,
-    --              fallback_warn }
+    --   reason ∈ { sticky, clean, redirected, redirected_tight, fallback_warn }
     getDataDir = function()
         if _data_dir_cache then
             return _data_dir_cache, _data_dir_reason, _data_dir_note

@@ -1,5 +1,26 @@
 # Changelog
 
+## [v1.2.3] — 2026-08-25
+
+### Removed
+- **Removed Legacy Syncthing support.** The separate compatibility menu,
+  old-binary downloader, automatic kernel selection, v1.2.2 launcher dialect,
+  and version-specific process tuning have been removed. The plugin now manages
+  only the current Syncthing binary downloaded from the official releases.
+- Removed the companion API methods `info.isLegacyMode()` and
+  `info.getLegacyVersion()`.
+
+### Changed
+- The companion API version is now **1.1.1** following the removal of the two
+  mode-selection methods.
+- The launcher has one local-daemon path: the `syncthing` executable,
+  `settings/syncthing` configuration directory, and the optional relocated
+  database directory used on affected Kindle filesystems.
+- Factory reset and plugin removal still delete obsolete mode settings and the
+  old secondary configuration directory left by earlier releases. This is
+  upgrade cleanup only and cannot enable the removed mode.
+
+
 ## [v1.2.2] — 2026-07-31
 
 ### Fixed

@@ -10,14 +10,8 @@ local U           = require("st_utils")
 local rapidjson_ok, rapidjson = pcall(require, "rapidjson")
 local JSON = rapidjson_ok and rapidjson or require("json")
 
--- NOTE: config_path and device_id_path are intentionally NOT declared as
--- module-level constants here.  They must be computed at call time by
--- calling U.getConfigDir(), because:
---   • Standard mode uses  .../settings/syncthing/
---   • Legacy mode uses    .../settings/syncthing-legacy/
--- A frozen constant (evaluated once at require() time) would always point
--- to the standard directory regardless of the active mode, causing every
--- API call in legacy mode to use the wrong API key and device ID.
+-- Config and device-ID paths are computed at call time so reset/migration
+-- operations cannot leave this module holding stale path state.
 
 local _cached_device_id = nil
 
@@ -63,9 +57,8 @@ local API_TOTAL_BUDGET_SEC = 5
 
 local function getAPIKey(self)
     if self.api_key then return self.api_key end
-    -- Compute the config path at call time — not at module load time — so
-    -- the correct directory is used regardless of whether legacy mode was
-    -- active when st_api was first require()d.
+    -- Compute the config path at call time rather than caching path state at
+    -- module load.
     local cfg_path = U.getConfigDir() .. "/config.xml"
     local f = io.open(cfg_path, "r")
     if not f then return nil end
@@ -85,8 +78,7 @@ end
 
 local function getDeviceId(self)
     if _cached_device_id then return _cached_device_id end
-    -- Same rationale as getAPIKey: compute the path at call time so the
-    -- correct config directory is used in both standard and legacy mode.
+    -- Same rationale as getAPIKey: compute the path at call time.
     local dev_id_path = U.getConfigDir() .. "/device-id"
     local f = io.open(dev_id_path, "r")
     if f then

@@ -48,7 +48,7 @@ local U           = require("st_utils")
 local _rapidjson_ok, _rapidjson = pcall(require, "rapidjson")
 local JSON = _rapidjson_ok and _rapidjson or require("json")
 
-local API_VERSION = "1.1.0"
+local API_VERSION = "1.1.1"
 local REGISTRY_FILENAME = "kosyncthing_plus_ignore_registry.lua"
 local REGISTRY_VERSION = 2
 
@@ -82,7 +82,7 @@ local function _migrate(self, store)
 
     if v < 2 then
         -- v1 stored ONE pattern string per plugin; v2 stores a LIST.  Coerce
-        -- any legacy string value into a one-element list (drop malformed).
+        -- any pre-v2 string value into a one-element list (drop malformed).
         local patterns = store:readSetting("patterns")
         if type(patterns) == "table" then
             local changed = false
@@ -502,18 +502,6 @@ local function buildPublicAPI(self)
             getGUIPort         = function() return self.syncthing_port end,
             getResourceProfile = function() return self.resource_profile end,
             getNetworkAccess   = function() return self.network_access end,
-
-            -- Legacy mode state — companion plugins can read these to adapt
-            -- their behaviour when v1.2.2 is active (e.g. to avoid calling
-            -- REST endpoints that did not exist before Syncthing v1.12.0,
-            -- such as POST /rest/config/folders or DELETE /rest/config/devices).
-            isLegacyMode = function()
-                return U.isLegacy()
-            end,
-            getLegacyVersion = function()
-                if not U.isLegacy() then return nil end
-                return G_reader_settings:readSetting("syncthing_legacy_version")
-            end,
         },
 
         onStatusChange = function(callback)

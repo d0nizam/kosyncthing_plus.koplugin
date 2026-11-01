@@ -22,7 +22,7 @@ Both reference the same table.
 ### API version
 
 ```lua
-Syncthing.version  --> string, e.g. "1.1.0"
+Syncthing.version  --> string, e.g. "1.1.1"
 ```
 
 Use this to gate features when writing a companion plugin that may run
@@ -334,41 +334,6 @@ local profile = Syncthing.info.getResourceProfile()
 local netMode = Syncthing.info.getNetworkAccess()
 ```
 
-### Legacy mode state
-
-```lua
-local isLegacy = Syncthing.info.isLegacyMode()
-local version  = Syncthing.info.getLegacyVersion()
-```
-
-#### `isLegacyMode()`
-
-Returns `true` when legacy mode is currently enabled, `false` otherwise.
-
-Use this to gate calls that rely on REST endpoints that were introduced
-after Syncthing v1.2.2:
-
-```lua
-if not Syncthing.info.isLegacyMode()
-    or Syncthing.info.getLegacyVersion() ~= "v1.2.2" then
-    -- Safe to use POST /rest/config/devices, PATCH endpoints, etc.
-    Syncthing.apiCall("config/devices", "POST", body)
-end
-```
-
-#### `getLegacyVersion()`
-
-Returns the active legacy version tag (e.g. `"v1.27.12"` or `"v1.2.2"`)
-when legacy mode is enabled, or `nil` when standard mode is active.
-
-| Version | API compatibility |
-|---------|-------------------|
-| `nil` (standard) | Full modern API |
-| `"v1.27.12"` | Full modern API |
-| `"v1.2.2"` | `/rest/system/config` GET/PUT only; no PATCH, no `/rest/config/*` |
-
----
-
 ### Detailed Conflict Information
 
 ```lua
@@ -453,27 +418,6 @@ Returns the **raw parsed response** from Syncthing:
 This is a thin transport wrapper. It does not use the SafeClient result
 envelope (`{ok, error, data}`) — use the `status` and `info` APIs when
 you need structured error handling.
-
-### Legacy mode and `apiCall`
-
-When `isLegacyMode()` is `true` and `getLegacyVersion()` is `"v1.2.2"`,
-the following endpoint categories are **not available** on the running daemon:
-
-| Category | Example | Available in v1.2.2? |
-|----------|---------|----------------------|
-| New config API | `GET config/folders` | ❌ returns 404 |
-| PATCH endpoints | `PATCH config/folders/{id}` | ❌ returns 404 |
-| POST to config | `POST config/devices` | ❌ returns 404 |
-| Old config API | `GET system/config` | ✅ |
-| Old config write | `PUT system/config` | ✅ |
-| Database | `POST db/scan`, `GET db/status` | ✅ |
-| System status | `GET system/status` | ✅ |
-
-The core plugin already handles these differences internally (read-modify-write
-via `PUT system/config` replaces all PATCH calls).  Companion plugins should
-gate their own `apiCall` usage with `isLegacyMode()` / `getLegacyVersion()`.
-
----
 
 ## Events
 

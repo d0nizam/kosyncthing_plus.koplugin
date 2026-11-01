@@ -19,7 +19,8 @@ package.preload["json"] = package.preload["json"]
                            decode = function() return {} end } end
 package.loaded["st_api_public"]  = nil
 package.preload["st_api_public"] = nil
-local IgnoreRegistry = require("st_api_public").IgnoreRegistry
+local PublicAPI      = require("st_api_public")
+local IgnoreRegistry = PublicAPI.IgnoreRegistry
 
 -- In-memory store, injected so _load() returns it directly (no LuaSettings,
 -- no filesystem, no migration).
@@ -183,11 +184,21 @@ describe("IgnoreRegistry:matchesConflictBasename", function()
         assert.is_true(R:matchesConflictBasename(conflict("notes.json")))
     end)
 
-    it("does not crash on a stray legacy string value in the store", function()
+    it("does not crash on a stray pre-v2 string value in the store", function()
         local R = fresh()
         -- A pre-v2 value that somehow bypassed migration must be skipped, not error.
-        R._store:saveSetting("patterns", { legacy = "string-not-a-list", syncery = { "*.sdr" } })
+        R._store:saveSetting("patterns", { stale = "string-not-a-list", syncery = { "*.sdr" } })
         assert.is_true(R:matchesConflictBasename(conflict("book.sdr")))
         same_list({ "*.sdr" }, R:getAll().syncery)                   -- string value dropped from copy
+    end)
+end)
+
+describe("Public API 1.1.1 surface", function()
+    it("reports 1.1.1 and omits the removed mode-selection methods", function()
+        PublicAPI.buildPublicAPI({})
+        assert.are.equal("1.1.1", PublicAPI.api.version)
+        assert.are.equal("1.1.1", IgnoreRegistry.getApiVersion())
+        assert.is_nil(PublicAPI.api.info.isLegacyMode)
+        assert.is_nil(PublicAPI.api.info.getLegacyVersion)
     end)
 end)

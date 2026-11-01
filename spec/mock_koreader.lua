@@ -329,7 +329,6 @@ function Mock.install()
             isValidDeviceID = function(s)
                 return type(s) == "string" and #s > 0
             end,
-            isLegacy = function() return false end,
             getConfigDir = function() return "/tmp/koreader/settings/syncthing" end,
             getDataDir = function() return "/tmp/koreader/settings/syncthing", nil end,
             invalidateLoopbackCache = function() end,

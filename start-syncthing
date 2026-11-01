@@ -1,25 +1,12 @@
 #!/bin/sh
 # start-syncthing — unified launcher for the Syncthing daemon under KOReader.
 #
-# Usage: start-syncthing <home_dir> <port> <koreader_dir> [resource] [network] [binary_name] [config_dirname] [legacy_version]
+# Usage: start-syncthing <home_dir> <port> <koreader_dir> [resource] [network] [data_dir]
 #
 #   resource     : low (default) | normal
 #   network      : lan (default) | global
-#   binary_name  : syncthing (default) | syncthing-legacy
-#       The filename of the binary inside the plugin folder.  Passing
-#       "syncthing-legacy" activates legacy mode without any other change
-#       to the script logic — all safety features, memory tuning, and
-#       double-start guard are inherited automatically.
-#   config_dirname : syncthing (default) | syncthing-legacy
-#       The subdirectory inside $KOREADER_DIR/settings/ used for config,
-#       logs, and device-id cache.  Must match the binary_name so each
-#       binary has its own isolated state directory.
-#   legacy_version : empty (default) | v1.27.12 | v1.2.2
-#       The selected legacy Syncthing version, passed by st_process.lua.
-#       Only "v1.2.2" changes script behaviour: that release predates the
-#       `serve`/`generate` subcommand interface and the --config/--data
-#       split (both introduced around v1.7.0), so it needs the historical
-#       single-dash command line.  Empty and "v1.27.12" use the modern CLI.
+#   data_dir     : optional Syncthing database directory; defaults to the
+#                  standard configuration directory
 #
 # DO NOT use set -e. Handle errors manually so we can emit clear messages.
 
@@ -51,24 +38,11 @@ port="$2"
 KOREADER_DIR="$3"
 resource="${4:-low}"
 network="${5:-lan}"
-# Args 6, 7 and 8 are optional and default to standard mode.
-# st_process.lua sets them explicitly when launching in legacy mode.
-binary_name="${6:-syncthing}"
-config_dirname="${7:-syncthing}"
-legacy_version="${8:-}"
-# Arg 9 (optional): the database directory chosen by st_utils.getDataDir().
+# Arg 6 (optional): the database directory chosen by st_utils.getDataDir().
 # On an affected Kindle this is a persistent ext path off the hard_remove
 # FUSE mount; otherwise it equals the config directory.  Empty/absent means
 # "same as config" — preserving the historical single-directory behaviour.
-data_dir_arg="${9:-}"
-
-# cli_mode selects the command-line dialect:
-#   v1     - Syncthing v1.2.2: historical single-dash CLI, no subcommands.
-#   modern - standard binary and v1.27.12: `serve`/`generate` subcommands.
-case "$legacy_version" in
-    v1.2.2) cli_mode="v1" ;;
-    *)      cli_mode="modern" ;;
-esac
+data_dir_arg="${6:-}"
 
 if [ -z "$home_dir" ] || [ -z "$port" ] || [ -z "$KOREADER_DIR" ]; then
     echo "Empty argument: home_dir='$home_dir' port='$port' koreader_dir='$KOREADER_DIR'" >&2
@@ -77,19 +51,18 @@ fi
 
 export HOME="$home_dir"
 
-config_dir="$KOREADER_DIR/settings/$config_dirname"
-syncthing="$KOREADER_DIR/plugins/kosyncthing_plus.koplugin/$binary_name"
+config_dir="$KOREADER_DIR/settings/syncthing"
+syncthing="$KOREADER_DIR/plugins/kosyncthing_plus.koplugin/syncthing"
 cacert="$KOREADER_DIR/plugins/kosyncthing_plus.koplugin/cacert.pem"
 
 # The database directory.  Defaults to config_dir (historical behaviour) when
-# arg 9 is empty.  On an affected Kindle, st_utils.getDataDir() passes a
+# arg 6 is empty.  On an affected Kindle, st_utils.getDataDir() passes a
 # persistent ext path here so the SQLite DB and its WAL/SHM live off the
 # hard_remove FUSE mount.  TMPDIR/SQLITE_TMPDIR are pointed at the same place
 # ONLY when we actually relocate, because SQLite's DELETE-ON-CLOSE temp files
 # (VACUUM, large sorts) follow TMPDIR, not --data, and must not land on the
-# broken mount.  When we do NOT relocate (healthy device, or legacy/LevelDB
-# which is unaffected) we leave TMPDIR untouched so behaviour is identical to
-# before — temp files use the system default (tmpfs), not the FUSE mount.
+# broken mount.  When we do NOT relocate, TMPDIR remains untouched so temp
+# files use the system default (tmpfs), not the FUSE mount.
 data_dir="${data_dir_arg:-$config_dir}"
 [ -z "$data_dir" ] && data_dir="$config_dir"
 if [ "$data_dir" != "$config_dir" ]; then
@@ -166,60 +139,26 @@ mkdir -p "$config_dir" || { echo "Cannot create config dir: $config_dir" >&2; ex
 # ---------------------------------------------------------------------------
 # First-run config generation.
 #
-# modern (standard / v1.27.12):
-#   The `generate` subcommand exists.  Syncthing introduced --no-port-probing
-#   and --no-default-folder at different versions, so we try the most
-#   featureful invocation first and degrade gracefully.
-#
-# v1 (v1.2.2):
-#   Predates the `generate` subcommand and the --config/--data split.  The
-#   historical CLI is `syncthing -generate=<dir>`, which creates cert.pem,
-#   key.pem and config.xml in <dir> and then exits.  --no-port-probing does
-#   not exist on this release; v1.2.2 does not probe ports during generate.
+# Generate the initial configuration with the current Syncthing CLI.
 # ---------------------------------------------------------------------------
 if [ ! -f "$config_dir/config.xml" ]; then
     echo "Generating Syncthing configuration..." >&2
-    if [ "$cli_mode" = "v1" ]; then
-        if ! "$syncthing" -generate="$config_dir" 2>/dev/null; then
-            echo "Failed to generate Syncthing config (legacy v1.2.2)." >&2
-            exit 1
-        fi
-    else
-        # Attempt 1: modern flags — Syncthing v1.19.0+
-        if ! "$syncthing" generate \
-                --config="$config_dir" \
-                --data="$data_dir" \
-                --no-port-probing \
-                --no-default-folder 2>/dev/null; then
-            # Attempt 2: without --no-default-folder — Syncthing v1.12.0+
-            if ! "$syncthing" generate \
-                    --config="$config_dir" \
-                    --data="$data_dir" \
-                    --no-port-probing 2>/dev/null; then
-                # Attempt 3: bare minimum — older v1.x without these flags.
-                # A default folder will be created in config.xml; the user can
-                # remove it via the Web GUI.  Port probing is harmless here
-                # because we override the GUI address with --gui-address anyway.
-                if ! "$syncthing" generate \
-                        --config="$config_dir" \
-                        --data="$data_dir" 2>/dev/null; then
-                    echo "Failed to generate Syncthing config." >&2
-                    exit 1
-                fi
-            fi
-        fi
+    if ! "$syncthing" generate \
+            --config="$config_dir" \
+            --data="$data_dir" \
+            --no-port-probing \
+            --no-default-folder 2>/dev/null; then
+        echo "Failed to generate Syncthing config." >&2
+        exit 1
     fi
 fi
 
 # ---------------------------------------------------------------------------
 # Cache the device ID.
-# modern: the `device-id` subcommand prints the ID authoritatively.
-# v1    : v1.2.2 has no `device-id` subcommand.  Caching is skipped here;
-#         the plugin reads the ID from the REST API (/rest/system/status
-#         -> myID) on first need and writes the cache file itself.  This
-#         step is non-fatal in every mode, so skipping it is safe.
+# The `device-id` subcommand prints the ID authoritatively.  This cache step is
+# non-fatal because the plugin can also obtain the ID from the REST API.
 # ---------------------------------------------------------------------------
-if [ "$cli_mode" != "v1" ] && [ ! -s "$config_dir/device-id" ]; then
+if [ ! -s "$config_dir/device-id" ]; then
     device_id=$("$syncthing" device-id \
         --config="$config_dir" \
         --data="$data_dir" 2>/dev/null)
@@ -264,36 +203,19 @@ fi
 # Using `set --` is the POSIX-safe way to build a dynamic argument list
 # in /bin/sh where arrays are unavailable.
 #
-# modern (standard / v1.27.12): `serve` subcommand, --config/--data split,
-#         --log-file with rotation, http:// GUI address URL.
-# v1     (v1.2.2): historical single-dash CLI — no `serve` subcommand, no
-#         --config/--data (only -home), -logfile instead of --log-file (no
-#         rotation flags on this release), and -gui-address takes a bare
-#         host:port without a URL scheme.  --no-upgrade still applies for
-#         LAN mode.  These flags have been stable since the Syncthing 0.14
-#         era and are the correct shape for v1.2.2.
+# The current Syncthing CLI uses the `serve` subcommand, separate config/data
+# directories, and the URL form of --gui-address.
 # ---------------------------------------------------------------------------
-if [ "$cli_mode" = "v1" ]; then
-    set -- "$syncthing" \
-        -home="$config_dir" \
-        -gui-address="0.0.0.0:$port" \
-        -logfile="$config_dir/syncthing.log" \
-        -no-browser \
-        -no-restart
+set -- "$syncthing" serve \
+    --config="$config_dir" \
+    --data="$data_dir" \
+    --gui-address="http://0.0.0.0:$port" \
+    --log-file="$config_dir/syncthing.log" \
+    --log-max-size=5242880 \
+    --log-max-old-files=1 \
+    --no-browser
 
-    [ "$network" = "lan" ] && set -- "$@" -no-upgrade
-else
-    set -- "$syncthing" serve \
-        --config="$config_dir" \
-        --data="$data_dir" \
-        --gui-address="http://0.0.0.0:$port" \
-        --log-file="$config_dir/syncthing.log" \
-        --log-max-size=5242880 \
-        --log-max-old-files=1 \
-        --no-browser
-
-    [ "$network" = "lan" ] && set -- "$@" --no-upgrade
-fi
+[ "$network" = "lan" ] && set -- "$@" --no-upgrade
 
 # ---------------------------------------------------------------------------
 # Launch
