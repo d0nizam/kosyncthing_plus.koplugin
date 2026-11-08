@@ -1,5 +1,30 @@
 # Changelog
 
+## [v1.2.4] — 2026-11-08
+
+### Fixed
+- **Android remote mode could not connect while "Use HTTPS for GUI" was
+  enabled.** The dialog only said "Could not connect", although the API key and
+  port were correct. The TLS handshake succeeds, but on some KOReader/Android
+  builds `ssl.https.request` rejects the connection with "hostname does not
+  match certificate" even with `verify="none"`: Syncthing's generated GUI
+  certificate has the CN `syncthing`, never `127.0.0.1`. The request now builds
+  the TLS connection with `ssl.wrap` and lets `socket.http` parse the response,
+  skipping only the hostname check. This is safe because the URL is always
+  `https://127.0.0.1:<port>`; authentication stays the API key.
+- **An http probe no longer "succeeds" through Syncthing's redirect.** On a TLS
+  GUI, Syncthing answers plain http with `307` to https; following it could make
+  the http probe pass and save the wrong scheme. Redirects are no longer
+  followed.
+- **A pasted API key with a trailing newline no longer breaks the request.**
+  Whitespace is now stripped from the key (Syncthing answered such a request
+  with `400`).
+
+### Changed
+- **The "Could not connect" dialog now shows why**, per scheme (for example
+  `https: HTTP/1.1 403 Forbidden` or `https: request failed: connection
+  refused`), and stays on screen longer.
+
 ## [v1.2.3] — 2026-08-25
 
 ### Removed
