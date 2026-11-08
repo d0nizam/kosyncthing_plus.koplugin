@@ -97,14 +97,73 @@ local CONFLICT_CACHE_TTL    = 8
 -- §2  HTTP plumbing (request fn + timeout), kept injectable for tests
 -- ─────────────────────────────────────────────────────────────────────────────
 
--- Resolve the LuaSocket/LuaSec request function for a scheme.
---   "https" -> ssl.https.request   (TLS; BasicSync + Syncthing-generated cert)
---   else    -> socket.http.request (plain)
+-- HTTPS request that does NOT enforce a certificate-hostname match.
+--
+-- Why not ssl.https.request: the LuaSec build on some Android KOReader
+-- versions checks the certificate hostname right after the handshake and ignores
+-- verify="none" for it.  Syncthing's generated GUI certificate has CN "syncthing",
+-- never "127.0.0.1", so every request fails with "hostname does not match
+-- certificate" even though the TLS handshake itself succeeds (device report:
+-- handshake OK, ssl.https "hostname does not match certificate").
+-- This function builds the TLS connection with ssl.wrap (what ssl.https does
+-- internally, minus the hostname check) and lets LuaSocket's own socket.http
+-- parse the response, so the result/headers/status contract is unchanged.
+-- Authentication is the API key, not the certificate (the documented `curl -k` case).
+-- Skipping the hostname check is safe here because androidApiCall always builds
+-- the URL as https://127.0.0.1:<port>/... (loopback only).
+local function https_request_no_hostcheck(req)
+    local ok_s, socket = pcall(require, "socket")
+    local ok_l, ssl    = pcall(require, "ssl")
+    local ok_h, http   = pcall(require, "socket.http")
+    if not (ok_s and ok_l and ok_h and ssl.wrap and http.request) then
+        return nil, "LuaSec/socket.http unavailable"
+    end
+    local params = { mode = "client", protocol = "any", verify = "none", options = "all" }
+    req.create = function()
+        local conn = {}
+        conn.sock = socket.tcp()
+        local tcp_settimeout = getmetatable(conn.sock).__index.settimeout
+        local timeout
+        function conn:settimeout(t)
+            timeout = t
+            return tcp_settimeout(self.sock, t)
+        end
+        -- socket.http calls close() on a failed connect, before the forwarding
+        -- below exists, so close must be defined up front.
+        function conn:close()
+            return self.sock:close()
+        end
+        function conn:connect(host, port)
+            local ok, err = self.sock:connect(host, port)
+            if not ok then return nil, err end
+            local wrapped, werr = ssl.wrap(self.sock, params)
+            if not wrapped then return nil, werr end
+            self.sock = wrapped
+            -- No sni(): the host is an IP literal (127.0.0.1).
+            if timeout then self.sock:settimeout(timeout) end
+            local hs, herr = self.sock:dohandshake()
+            if not hs then return nil, herr end
+            -- Forward the remaining socket methods (send/receive/close/...).
+            for name, method in pairs(getmetatable(self.sock).__index) do
+                if type(method) == "function" then
+                    conn[name] = function(c, ...) return method(c.sock, ...) end
+                end
+            end
+            return 1
+        end
+        return conn
+    end
+    return http.request(req)
+end
+
+-- Resolve the LuaSocket request function for a scheme.
+--   "https" -> https_request_no_hostcheck  (TLS; Syncthing-generated cert)
+--   else    -> socket.http.request         (plain)
 -- Returns nil when the needed library is absent (fail-closed, see apiCall).
 local function resolve_request_fn(scheme)
     if scheme == "https" then
-        local ok, https = pcall(require, "ssl.https")
-        if ok and https and https.request then return https.request end
+        local ok, ssl = pcall(require, "ssl")
+        if ok and ssl and ssl.wrap then return https_request_no_hostcheck end
         return nil
     end
     local ok, http = pcall(require, "socket.http")
@@ -179,6 +238,10 @@ local function androidApiCall(self, api_path, method, body_str, opts)
         headers = headers,
         sink    = table_sink(chunks),
         source  = source,
+        -- The REST API never redirects.  Syncthing answers plain http on a TLS GUI
+        -- with 307 -> https; following it made an http probe "succeed" through
+        -- https and persist the wrong scheme.
+        redirect = false,
     }
     -- TLS posture for HTTPS: Syncthing uses a self-signed / self-generated
     -- cert by design; we authenticate with the API key, not the cert (the
@@ -191,6 +254,7 @@ local function androidApiCall(self, api_path, method, body_str, opts)
 
     local request_fn = opts.request_fn or self._android_request_fn or resolve_request_fn(scheme)
     if not request_fn then
+        self._last_call_status = (scheme == "https") and "ssl unavailable" or "socket.http unavailable"
         -- Fail CLOSED and VISIBLY: the user sees a recorded error rather than a
         -- silent nothing.  Only reachable if LuaSec is missing from the build.
         self:_addApiError({
@@ -244,6 +308,7 @@ local function androidApiCall(self, api_path, method, body_str, opts)
         -- non-2xx -> result stays nil
     end
 
+    self._last_call_status = (result == nil) and (last_status or "no response") or nil
     if result == nil then
         self:_addApiError({
             path   = api_path,
@@ -270,7 +335,7 @@ local function probe(self)
         total_timeout = PROBE_TOTAL_TIMEOUT,
     })
     self._suppress_api_errors = saved
-    return r ~= nil
+    return r ~= nil, self._last_call_status
 end
 
 -- ─────────────────────────────────────────────────────────────────────────────
@@ -420,7 +485,7 @@ local function showApiKeyDialog(self, cb)
                 is_enter_default = true,
                 callback = function()
                     local fields = dialog:getFields()
-                    local key    = fields[1]
+                    local key    = tostring(fields[1] or ""):gsub("%s+", "")
                     local port   = tostring(fields[2] or ""):gsub("%s+", "")
                     if not key or key == "" then
                         UIManager:close(dialog)
@@ -452,19 +517,24 @@ end
 -- because KOReader is single-threaded so nothing else calls apiCall mid-probe.
 -- `preferred` (a previously-working scheme) is tried first; this is what makes
 -- the http-vs-https default question a one-time cost — after the first success
--- the scheme is persisted and tried directly.  Returns the scheme or nil.
+-- the scheme is persisted and tried directly.  Returns the scheme, or nil plus
+-- a short technical reason per scheme (e.g. "https: HTTP/1.1 403 Forbidden").
 local function probe_candidate(self, key, port, preferred)
     local old_key, old_port, old_scheme = self.api_key, self.syncthing_port, self._api_scheme
     self.api_key        = key
     self.syncthing_port = port or DEFAULT_PORT
     local order = (preferred == "http") and { "http", "https" } or { "https", "http" }
     local found
+    local reasons = {}
     for _, sch in ipairs(order) do
         self._api_scheme = sch
-        if probe(self) then found = sch; break end
+        local ok, why = probe(self)
+        if ok then found = sch; break end
+        reasons[#reasons + 1] = sch .. ": " .. tostring(why or "no response")
     end
     if not found then
         self.api_key, self.syncthing_port, self._api_scheme = old_key, old_port, old_scheme
+        return nil, table.concat(reasons, "\n")
     end
     return found
 end
@@ -480,7 +550,7 @@ function Android.connectionSettingsMenuItem(self)
             showApiKeyDialog(self, function(key, port)
                 if not key then return end
                 local preferred = G_reader_settings:readSetting("syncthing_android_scheme")
-                local scheme = probe_candidate(self, key, port, preferred)
+                local scheme, why = probe_candidate(self, key, port, preferred)
                 if scheme then
                     G_reader_settings:saveSetting("syncthing_android_apikey", key)
                     G_reader_settings:saveSetting("syncthing_android_port", self.syncthing_port)
@@ -494,8 +564,9 @@ function Android.connectionSettingsMenuItem(self)
                     if tmi and tmi.updateItems then tmi:updateItems() end
                 else
                     UIManager:show(InfoMessage:new{
-                        text = _("Could not connect. Check the key and that the app is running."),
-                        timeout = 4,
+                        text = _("Could not connect. Check the key and that the app is running.")
+                            .. (why and ("\n\n" .. why) or ""),
+                        timeout = 8,
                     })
                 end
             end)
