@@ -1,5 +1,17 @@
 # Changelog
 
+## [v1.2.5] — 2026-11-12
+
+### Fixed
+[issue #11](https://github.com/d0nizam/kosyncthing_plus.koplugin/issues/11#issuecomment-6821487096)
+- **Syncthing failed to start on firmware without a usable `nice`. **
+  `start-syncthing` always ran `setsid nice -n 10 syncthing …`, so a firmware
+  without a working `nice` (reported on Kobo software 6.0 beta, #11) aborted the
+  launch. The launcher no longer wraps Syncthing in `nice`: Syncthing lowers its
+  own priority at startup (`setLowPriority`, on by default; its worker process
+  was measured at niceness 11, against 10 with the old `nice` wrapper). If
+  `setLowPriority` is turned off in Syncthing, it now runs at normal priority.
+
 ## [v1.2.4] — 2026-11-08
 
 ### Fixed
