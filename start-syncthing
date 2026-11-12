@@ -227,14 +227,18 @@ set -- "$syncthing" serve \
 #
 # setsid is NOT present in every busybox build (notably some Kindle firmwares
 # omit it), so we probe for it first and fall back to a plain background
-# launch.  The PID written to the pid_file is the Syncthing PID in both
-# cases: exec() preserves PIDs through the setsid → nice → syncthing chain,
-# and kill() in st_process.lua targets the PID directly (not the group).
+# launch.  The daemon is NOT wrapped in nice: Syncthing lowers its own priority
+# at startup (options/setLowPriority, on by default), and some firmwares have no
+# usable nice (reported on Kobo firmware 6.0 beta).  With setLowPriority turned
+# off in Syncthing, it therefore runs at the priority it inherits.  The PID
+# written to the pid_file is the Syncthing PID in both cases: exec() preserves
+# PIDs through setsid, and kill() in st_process.lua targets the PID directly
+# (not the group).
 # ---------------------------------------------------------------------------
 if command -v setsid >/dev/null 2>&1; then
-    setsid nice -n 10 "$@" &
+    setsid "$@" &
 else
-    nice -n 10 "$@" &
+    "$@" &
 fi
 PID=$!
 
