@@ -1,5 +1,10 @@
 # Changelog
 
+## [v1.2.6] — 2026-11-13
+
+### Fixed
+- Fresh installations failed to generate the Syncthing configuration with Syncthing 2.x. The launcher passed --no-default-folder to syncthing generate, but this flag was removed in Syncthing 2.0. Since the launcher only generates the configuration when config.xml is missing, existing installations were unaffected. Removed the obsolete flag; Syncthing 2.x no longer creates a default folder on first startup.
+
 ## [v1.2.5] — 2026-11-12
 
 ### Fixed
