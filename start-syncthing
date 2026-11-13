@@ -146,8 +146,7 @@ if [ ! -f "$config_dir/config.xml" ]; then
     if ! "$syncthing" generate \
             --config="$config_dir" \
             --data="$data_dir" \
-            --no-port-probing \
-            --no-default-folder 2>/dev/null; then
+            --no-port-probing 2>/dev/null; then
         echo "Failed to generate Syncthing config." >&2
         exit 1
     fi
