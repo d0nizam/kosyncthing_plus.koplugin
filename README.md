@@ -284,6 +284,7 @@ This plugin is tested and confirmed working on:
 | Kindle | **Basic 10th Generation (2019)** | Local daemon |
 | Kobo | **Libra Colour (2024)** | Local daemon |
 | PocketBook | **Era Color (2024)** | Local daemon |
+| PocketBook | **InkPad 3 Pro (2023)** | Local daemon |
 | Android | Samsung A54 | Android (remote mode) |
 | Linux (WSL) | Acer Aspire 7 A715 | Local daemon (Windows 11 + WSL2, x86_64) |
 
